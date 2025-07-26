@@ -2,10 +2,11 @@
 
 use App\Http\Controllers\Admin\{SchoolClassController, TeacherController, StudentController, BtqGroupController};
 use App\Http\Controllers\Teacher\{MyGroupController, ProgressController, PromotionController, HafalanController};
-use App\Http\Controllers\{DataController, DashboardController, ProfileController};
+use App\Http\Controllers\{DataController, DashboardController, ProfileController, ChartController};
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Models\BtqGroup;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -40,6 +41,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('btq-groups/{btq_group}/add-student', [BtqGroupController::class, 'addStudent'])->name('btq-groups.add-student');
             Route::post('btq-groups/{btq_group}/remove-student', [BtqGroupController::class, 'removeStudent'])->name('btq-groups.remove-student');
         });
+
+        Route::get('/dashboard/group/{group}', function(BtqGroup $group) {
+            return Inertia::render('Admin/GroupDetailDashboard', ['group' => $group]);
+        })->name('dashboard.group-detail');
+
+        Route::prefix('api')->name('api.')->group(function () {
+            Route::get('/charts/group-detail/{group}', [ChartController::class, 'groupDetailDashboard'])
+                ->name('charts.group-detail');
+        });
     });
 
     // --- RUTE KHUSUS GURU ---
@@ -47,7 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/my-group', [MyGroupController::class, 'index'])->name('my-group.index');
         Route::patch('/progress/{progress}', [ProgressController::class, 'update'])->name('progress.update');
         Route::post('/promotions/{progress}', [PromotionController::class, 'propose'])->name('promotions.propose');
-        Route::put('/hafalan/{btq_group}', [HafalanController::class, 'update'])->name('hafalan.update');
+        //Route::put('/hafalan/{btq_group}', [HafalanController::class, 'update'])->name('hafalan.update');
     });
 
     // --- RUTE PROFIL & DATA UMUM ---
@@ -58,6 +68,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     Route::get('/api/juzs', [DataController::class, 'juzs'])->name('api.juzs');
     Route::get('/api/surahs', [DataController::class, 'surahs'])->name('api.surahs');
+
+    Route::prefix('api/charts')->name('api.charts.')->group(function() {
+        // Rute untuk guru
+        Route::get('/teacher-dashboard', [ChartController::class, 'teacherDashboard'])
+            ->name('teacher-dashboard');
+
+        // Rute untuk koordinator, dilindungi oleh middleware role
+        Route::get('/coordinator-dashboard', [ChartController::class, 'coordinatorDashboard'])
+            ->middleware('role.koordinator')
+            ->name('coordinator-dashboard');
+    });
 });
 
 require __DIR__ . '/auth.php';

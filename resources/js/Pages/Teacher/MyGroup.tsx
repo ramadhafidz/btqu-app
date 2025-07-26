@@ -46,10 +46,7 @@ export default function MyGroup({
   const [hafalanAyats, setHafalanAyats] = useState<{ [key: number]: string }>({});
   const [editHafalanStudentId, setEditHafalanStudentId] = useState<number | null>(null);
   const [localPageChanges, setLocalPageChanges] = useState<{ [key: number]: number }>({});
-
-  // [UBAH] Tambah state untuk perubahan hafalan lokal
   const [localHafalanChanges, setLocalHafalanChanges] = useState<{ [key: number]: { surahId: number | null; ayat: string | null } }>({});
-
   const [savingState, setSavingState] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
@@ -60,7 +57,6 @@ export default function MyGroup({
         return acc;
       }, {} as { [key: number]: number });
 
-      // [UBAH] Inisialisasi state hafalan lokal
       const initialHafalan = initialGroup.students.reduce((acc, student) => {
         if (student.progress) {
           acc[student.id] = {
@@ -82,7 +78,11 @@ export default function MyGroup({
   }, []);
 
   useEffect(() => {
-    axios.get(route("api.surahs", { juz_id: selectedJuz })).then((res) => setSurahs(res.data));
+    if (selectedJuz) {
+      axios.get(route("api.surahs", { juz_id: selectedJuz })).then((res) => setSurahs(res.data));
+    } else {
+      axios.get(route("api.surahs")).then((res) => setSurahs(res.data));
+    }
   }, [selectedJuz]);
 
   const refreshPageData = () => {
@@ -93,6 +93,24 @@ export default function MyGroup({
     });
   };
 
+  const openHafalanModal = (student: StudentWithProgress) => {
+    const localHafalan = localHafalanChanges[student.id] ?? {
+      surahId: student.progress?.hafalan_surah_id,
+      ayat: student.progress?.hafalan_ayat,
+    };
+
+    setHafalanSurahIds(prev => ({
+      ...prev,
+      [student.id]: localHafalan.surahId?.toString() ?? ''
+    }));
+    setHafalanAyats(prev => ({
+      ...prev,
+      [student.id]: localHafalan.ayat ?? ''
+    }));
+
+    setEditHafalanStudentId(student.id);
+  };
+
   const handleLocalPageChange = (studentId: number, amount: number) => {
     setLocalPageChanges((prev) => ({
       ...prev,
@@ -100,7 +118,6 @@ export default function MyGroup({
     }));
   };
 
-  // [UBAH] Fungsi ini menyimpan SEMUA perubahan untuk satu baris
   const handleSaveChangesForRow = (studentId: number) => {
     const student = btqGroup?.students.find((s) => s.id === studentId);
     if (!student || !student.progress) return;
@@ -109,14 +126,12 @@ export default function MyGroup({
 
     const payload: { pages_to_add?: number; hafalan_surah_id?: number | null; hafalan_ayat?: string | null } = {};
 
-    // Cek perubahan halaman
     const initialPage = student.progress.halaman;
     const newPage = localPageChanges[studentId];
     if (newPage !== initialPage) {
       payload.pages_to_add = newPage - initialPage;
     }
 
-    // Cek perubahan hafalan
     const initialHafalan = { surahId: student.progress.hafalan_surah_id, ayat: student.progress.hafalan_ayat };
     const newHafalan = localHafalanChanges[studentId];
     if (newHafalan && (newHafalan.surahId !== initialHafalan.surahId || newHafalan.ayat !== initialHafalan.ayat)) {
@@ -134,10 +149,8 @@ export default function MyGroup({
     }
   };
 
-  // [UBAH] Fungsi di modal hanya untuk atur state lokal
   const handleSetHafalan = () => {
     if (!editHafalanStudentId) return;
-
     setLocalHafalanChanges(prev => ({
       ...prev,
       [editHafalanStudentId]: {
@@ -145,11 +158,26 @@ export default function MyGroup({
         ayat: hafalanAyats[editHafalanStudentId] || null,
       }
     }));
-
     setEditHafalanStudentId(null);
   };
 
-  if (!btqGroup) { /* ... no changes ... */ }
+  if (!btqGroup) {
+    return (
+      <AuthenticatedLayout header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Grup Saya</h2>}>
+        <Head title="Grup Saya" />
+        <div className="py-12">
+          <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+              <div className="p-6 text-gray-900 text-center">
+                <p>Anda belum ditugaskan ke kelompok BTQ manapun.</p>
+                <p className="text-sm text-gray-500 mt-2">Silakan hubungi koordinator untuk informasi lebih lanjut.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </AuthenticatedLayout>
+    );
+  }
 
   return (
     <AuthenticatedLayout header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Grup Saya</h2>}>
@@ -176,19 +204,14 @@ export default function MyGroup({
                       const progress = student.progress;
                       const jilid = progress?.jilid ?? 0;
                       const maxHalaman = JILID_LIMITS[jilid] ?? 999;
-
                       const initialHalaman = progress?.halaman ?? 0;
                       const localHalaman = localPageChanges[student.id] ?? initialHalaman;
-
                       const localHafalan = localHafalanChanges[student.id] ?? { surahId: null, ayat: null };
                       const hafalanSurahId = localHafalan.surahId ?? progress?.hafalan_surah_id;
                       const hafalanAyat = localHafalan.ayat ?? progress?.hafalan_ayat;
-
-                      // [UBAH] Logika `hasChanges` kini memeriksa halaman dan hafalan
                       const hasPageChange = localHalaman !== initialHalaman;
                       const hasHafalanChange = hafalanSurahId !== progress?.hafalan_surah_id || hafalanAyat !== progress?.hafalan_ayat;
                       const hasChanges = hasPageChange || hasHafalanChange;
-
                       const isSaving = savingState[student.id] || false;
 
                       return (
@@ -206,8 +229,7 @@ export default function MyGroup({
                             {progress?.status_kenaikan ? <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(progress.status_kenaikan)}`}>{progress.status_kenaikan}</span> : <span className="text-gray-400 italic text-sm">Belum ada</span>}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <button type="button" onClick={() => setEditHafalanStudentId(student.id)} className="font-medium text-indigo-600 hover:text-indigo-800 transition">
-                              {/* [UBAH] Menampilkan data hafalan dari state lokal */}
+                            <button type="button" onClick={() => openHafalanModal(student)} className="font-medium text-indigo-600 hover:text-indigo-800 transition">
                               {hafalanSurahId && hafalanAyat
                                 ? `${surahs.find(s => s.id === hafalanSurahId)?.name_latin ?? '...'} : ${hafalanAyat}`
                                 : "Tambah Hafalan"}
@@ -257,7 +279,6 @@ export default function MyGroup({
             </div>
             <div className="mt-6 flex justify-end gap-3">
               <SecondaryButton onClick={() => setEditHafalanStudentId(null)}>Batal</SecondaryButton>
-              {/* [UBAH] Tombol ini menjadi "Atur" dan memanggil fungsi baru */}
               <PrimaryButton onClick={handleSetHafalan}>Atur</PrimaryButton>
             </div>
           </Dialog.Panel>
