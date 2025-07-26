@@ -11,10 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('btq_groups', function (Blueprint $table) {
-            $table->foreignId('hafalan_surah_id')->nullable()->constrained('surahs')->after('level');
-            $table->string('hafalan_ayat')->nullable()->after('hafalan_surah_id');
-        });
+        // Kolom hafalan dihapus, tidak perlu menambah kolom apapun di sini
     }
 
     /**
@@ -22,9 +19,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('btq_groups', function (Blueprint $table) {
-            $table->dropForeign(['hafalan_surah_id']);
-            $table->dropColumn(['hafalan_surah_id', 'hafalan_ayat']);
-        });
+        // Tidak ada kolom yang perlu dihapus karena tidak ada perubahan pada up()
     }
 };

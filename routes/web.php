@@ -21,7 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // --- RUTE KHUSUS KOORDINATOR ---
-    Route::prefix('admin')->name('admin.')->middleware('role.koordinator')->group(function() {
+    Route::prefix('admin')->name('admin.')->middleware('role.koordinator')->group(function () {
         // Halaman Admin
         Route::get('/school-classes', fn() => Inertia::render('Admin/SchoolClasses/Index'))->name('school-classes.index');
         Route::get('/teachers', fn() => Inertia::render('Admin/Teachers/Index'))->name('teachers.index');
@@ -29,7 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/btq-groups', fn() => Inertia::render('Admin/BtqGroups/Index'))->name('btq-groups.index');
 
         // API Admin
-        Route::prefix('api')->name('api.')->group(function() {
+        Route::prefix('api')->name('api.')->group(function () {
             Route::apiResource('school-classes', SchoolClassController::class);
             Route::apiResource('teachers', TeacherController::class);
             Route::apiResource('students', StudentController::class);
@@ -60,4 +60,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/api/surahs', [DataController::class, 'surahs'])->name('api.surahs');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

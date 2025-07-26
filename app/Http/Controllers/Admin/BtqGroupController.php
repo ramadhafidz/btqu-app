@@ -53,15 +53,13 @@ class BtqGroupController extends Controller
     {
         $validated = $request->validate([
             'teacher_id' => ['sometimes', 'required', 'exists:teachers,id', Rule::unique('btq_groups')->ignore($btqGroup->id)],
-            'hafalan_surah_id' => ['nullable', 'exists:surahs,id'],
-            'hafalan_ayat' => ['nullable', 'string', 'max:255'],
         ], [
             'teacher_id.unique' => 'Guru ini sudah mengajar di kelompok lain.',
         ]);
 
         $btqGroup->update($validated);
 
-        return response()->json($btqGroup->load(['teacher.user', 'students', 'hafalanSurah']));
+        return response()->json($btqGroup->load(['teacher.user', 'students']));
     }
 
     /**

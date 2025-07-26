@@ -14,7 +14,7 @@ class MyGroupController extends Controller
     {
         $user = Auth::user();
         $group = BtqGroup::where('teacher_id', $user->teacher?->id)
-            ->with(['students.progress', 'teacher.user', 'hafalanSurah']) // Tambahkan hafalanSurah
+            ->with(['students.progress', 'teacher.user'])
             ->first();
         return Inertia::render('Teacher/MyGroup', ['btqGroup' => $group]);
     }

@@ -12,8 +12,6 @@ class BtqGroup extends Model
     protected $fillable = [
         'teacher_id',
         'level',
-        'hafalan_surah_id', // Tambahkan ini
-        'hafalan_ayat',     // Tambahkan ini
     ];
 
     public function students()
@@ -21,10 +19,7 @@ class BtqGroup extends Model
         return $this->hasMany(Student::class);
     }
 
-    public function hafalanSurah()
-    {
-        return $this->belongsTo(Surah::class, 'hafalan_surah_id');
-    }
+
 
     public function teacher()
     {

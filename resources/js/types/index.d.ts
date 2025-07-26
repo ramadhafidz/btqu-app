@@ -3,7 +3,7 @@ export interface User {
     name: string;
     email: string;
     email_verified_at?: string;
-    role: 'koordinator' | 'guru';
+    role: "koordinator" | "guru";
 }
 
 export interface SchoolClass {
@@ -28,8 +28,15 @@ export interface StudentProgress {
 }
 
 // Tipe data baru yang kemarin kurang
-export interface Juz { id: number; juz_number: number; }
-export interface Surah { id: number; surah_number: number; name_latin: string; }
+export interface Juz {
+    id: number;
+    juz_number: number;
+}
+export interface Surah {
+    id: number;
+    surah_number: number;
+    name_latin: string;
+}
 
 export interface Student {
     id: number;
@@ -44,12 +51,11 @@ export interface BtqGroup {
     level: number;
     teacher: Teacher | null;
     students: Student[];
-    hafalan_surah_id: number | null;
-    hafalan_ayat: string | null;
-    hafalan_surah: Surah | null; // Relasi untuk menampilkan nama surah
 }
 
-export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
+export type PageProps<
+    T extends Record<string, unknown> = Record<string, unknown>
+> = T & {
     auth: {
         user: User;
     };

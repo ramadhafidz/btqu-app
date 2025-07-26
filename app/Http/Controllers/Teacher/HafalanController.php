@@ -16,13 +16,7 @@ class HafalanController extends Controller
             abort(403, 'Anda tidak berhak mengubah grup ini.');
         }
 
-        $validated = $request->validate([
-            'hafalan_surah_id' => ['nullable', 'exists:surahs,id'],
-            'hafalan_ayat' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $btqGroup->update($validated);
-
-        return response()->json($btqGroup->load('hafalanSurah'));
+        // Kolom hafalan sudah tidak ada di grup, tidak perlu validasi atau update
+        return response()->json($btqGroup);
     }
 }
