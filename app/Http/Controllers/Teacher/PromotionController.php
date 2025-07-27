@@ -8,12 +8,16 @@ use Illuminate\Http\Request;
 
 class PromotionController extends Controller
 {
-    public function propose(StudentProgress $progress)
-    {
-        // Ubah status progres menjadi 'Diajukan'
-        $progress->status_kenaikan = 'Diajukan';
-        $progress->save();
+  public function propose(StudentProgress $progress)
+  {
+    // Ubah status progres menjadi 'Diajukan'
+    $progress->status_kenaikan = 'Diajukan';
+    $progress->save();
 
-        return response()->json($progress);
-    }
+    // [UBAH] Kembalikan ke halaman sebelumnya dengan pesan sukses
+    return back()->with(
+      'success',
+      'Siswa berhasil diajukan untuk kenaikan jilid.',
+    );
+  }
 }

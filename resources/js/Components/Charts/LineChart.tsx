@@ -45,7 +45,7 @@ export default function LineChart({ chartData, title }: LineChartProps) {
         text: title,
         font: {
           size: 16,
-        }
+        },
       },
     },
   };

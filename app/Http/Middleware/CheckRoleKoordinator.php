@@ -8,15 +8,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckRoleKoordinator
 {
-    public function handle(Request $request, Closure $next): Response
-    {
-        // Jika user yang login rolenya adalah 'koordinator'
-        if ($request->user() && $request->user()->role === 'koordinator') {
-            // Izinkan untuk melanjutkan
-            return $next($request);
-        }
-
-        // Jika bukan, blokir dengan halaman error 403
-        abort(403, 'UNAUTHORIZED ACTION.');
+  public function handle(Request $request, Closure $next): Response
+  {
+    // Jika user yang login rolenya adalah 'koordinator'
+    if ($request->user() && $request->user()->role === 'koordinator') {
+      // Izinkan untuk melanjutkan
+      return $next($request);
     }
+
+    // Jika bukan, blokir dengan halaman error 403
+    abort(403, 'UNAUTHORIZED ACTION.');
+  }
 }

@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class SchoolClass extends Model
 {
-    use HasFactory;
+  use HasFactory;
 
-    protected $fillable = ['level', 'nama_kelas'];
+  protected $fillable = ['level', 'nama_kelas'];
 
-    public function students()
-    {
-        return $this->hasMany(Student::class);
-    }
+  public function students()
+  {
+    return $this->hasMany(Student::class);
+  }
 }

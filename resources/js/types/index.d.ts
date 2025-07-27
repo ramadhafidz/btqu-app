@@ -1,62 +1,62 @@
 export interface User {
-    id: number;
-    name: string;
-    email: string;
-    email_verified_at?: string;
-    role: "koordinator" | "guru";
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at?: string;
+  role: 'koordinator' | 'guru';
 }
 
 export interface SchoolClass {
-    id: number;
-    level: number;
-    nama_kelas: string;
+  id: number;
+  level: number;
+  nama_kelas: string;
 }
 
 export interface Teacher {
-    id: number;
-    id_pegawai: string;
-    user: User;
+  id: number;
+  id_pegawai: string;
+  user: User;
 }
 
 export interface StudentProgress {
-    id: number;
-    jilid: number;
-    halaman: number;
-    status_kenaikan: string;
-    hafalan_surah_id: number | null;
-    hafalan_ayat: string | null;
+  id: number;
+  jilid: number;
+  halaman: number;
+  status_kenaikan: string;
+  hafalan_surah_id: number | null;
+  hafalan_ayat: string | null;
 }
 
 // Tipe data baru yang kemarin kurang
 export interface Juz {
-    id: number;
-    juz_number: number;
+  id: number;
+  juz_number: number;
 }
 export interface Surah {
-    id: number;
-    surah_number: number;
-    name_latin: string;
+  id: number;
+  surah_number: number;
+  name_latin: string;
 }
 
 export interface Student {
-    id: number;
-    nisn: string;
-    nama_lengkap: string;
-    school_class: SchoolClass | null;
-    progress: StudentProgress | null;
+  id: number;
+  nisn: string;
+  nama_lengkap: string;
+  school_class: SchoolClass | null;
+  progress: StudentProgress | null;
 }
 
 export interface BtqGroup {
-    id: number;
-    level: number;
-    teacher: Teacher | null;
-    students: Student[];
+  id: number;
+  level: number;
+  teacher: Teacher | null;
+  students: Student[];
 }
 
 export type PageProps<
-    T extends Record<string, unknown> = Record<string, unknown>
+  T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
-    auth: {
-        user: User;
-    };
+  auth: {
+    user: User;
+  };
 };

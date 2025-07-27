@@ -9,23 +9,23 @@ use App\Models\BtqGroup;
 
 class DashboardController extends Controller
 {
-    public function index()
-    {
-        $user = Auth::user();
+  public function index()
+  {
+    $user = Auth::user();
 
-        if ($user->role === 'guru') {
-            // Jika user adalah guru, cari grup yang dia ajar
-            $group = BtqGroup::where('teacher_id', $user->teacher?->id)
-                            ->with(['students.progress', 'teacher.user'])
-                            ->first();
+    if ($user->role === 'guru') {
+      // Jika user adalah guru, cari grup yang dia ajar
+      $group = BtqGroup::where('teacher_id', $user->teacher?->id)
+        ->with(['students.progress', 'teacher.user'])
+        ->first();
 
-            // Tampilkan halaman khusus untuk guru dan kirim data grupnya
-            return Inertia::render('Teacher/Dashboard', [
-                'btqGroup' => $group
-            ]);
-        }
-
-        // Jika bukan guru (atau koordinator), tampilkan dashboard biasa
-        return Inertia::render('Dashboard');
+      // Tampilkan halaman khusus untuk guru dan kirim data grupnya
+      return Inertia::render('Teacher/Dashboard', [
+        'btqGroup' => $group,
+      ]);
     }
+
+    // Jika bukan guru (atau koordinator), tampilkan dashboard biasa
+    return Inertia::render('Dashboard');
+  }
 }

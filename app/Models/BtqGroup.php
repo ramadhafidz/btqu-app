@@ -7,22 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class BtqGroup extends Model
 {
-    use HasFactory;
+  use HasFactory;
 
-    protected $fillable = [
-        'teacher_id',
-        'level',
-    ];
+  protected $fillable = ['teacher_id', 'level'];
 
-    public function students()
-    {
-        return $this->hasMany(Student::class);
-    }
+  public function students()
+  {
+    return $this->hasMany(Student::class);
+  }
 
-
-
-    public function teacher()
-    {
-        return $this->belongsTo(Teacher::class);
-    }
+  public function teacher()
+  {
+    return $this->belongsTo(Teacher::class);
+  }
 }

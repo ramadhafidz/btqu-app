@@ -1,0 +1,13 @@
+# Direktori Vendor & Build
+/bootstrap/cache/
+/node_modules/
+/public/build/
+/storage/
+/vendor/
+
+# File Laravel & Vite
+.env
+.env.example
+/public/hot
+/resources/views/app.blade.php
+*.lock

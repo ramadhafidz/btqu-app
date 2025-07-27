@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.select__control {
+  @apply mt-1 block w-full !border-gray-300 focus:!border-indigo-500 focus:!ring-indigo-500 !rounded-md !shadow-sm;
+}
+.select__menu {
+  @apply mt-1;
+}
+.select__menu-list {
+  @apply bg-white rounded-md shadow-lg border;
+}
+.select__option {
+  @apply px-4 py-2;
+}
+.select__option--is-focused {
+  @apply bg-gray-100;
+}
+.select__option--is-selected {
+  @apply bg-indigo-500 text-white;
+}
+
+.select__input:focus {
+  box-shadow: none !important;
+}

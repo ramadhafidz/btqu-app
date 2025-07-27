@@ -29,7 +29,7 @@ export default function PieChart({ chartData, title }: PieChartProps) {
         text: title,
         font: {
           size: 16,
-        }
+        },
       },
     },
   };

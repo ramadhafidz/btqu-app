@@ -25,9 +25,15 @@ interface BarChartProps {
   onClick?: (event: React.MouseEvent<HTMLCanvasElement>) => void;
 }
 
-const BarChart = forwardRef<any, BarChartProps>(({ chartData, title, onClick }, ref) => {
-  const options = { /* ... */ };
-  return <Bar options={options} data={chartData} ref={ref} onClick={onClick} />;
-});
+const BarChart = forwardRef<any, BarChartProps>(
+  ({ chartData, title, onClick }, ref) => {
+    const options = {
+      /* ... */
+    };
+    return (
+      <Bar options={options} data={chartData} ref={ref} onClick={onClick} />
+    );
+  }
+);
 
 export default BarChart;

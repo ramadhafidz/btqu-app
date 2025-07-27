@@ -9,62 +9,78 @@ use Illuminate\Validation\Rule;
 
 class SchoolClassController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $classes = SchoolClass::orderBy('level')->orderBy('nama_kelas')->get();
-        return response()->json($classes);
-    }
+  /**
+   * Display a listing of the resource.
+   */
+  public function index()
+  {
+    $classes = SchoolClass::withCount('students')
+      ->orderBy('level')
+      ->orderBy('nama_kelas')
+      ->get();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'level' => ['required', 'integer', 'min:1'],
-            'nama_kelas' => ['required', 'string', 'max:255', Rule::unique('school_classes')],
-        ]);
+    return response()->json($classes);
+  }
 
-        $class = SchoolClass::create($validated);
-        return response()->json($class, 201);
-    }
+  /**
+   * Store a newly created resource in storage.
+   */
+  public function store(Request $request)
+  {
+    $validated = $request->validate([
+      'level' => ['required', 'integer', 'min:1'],
+      'nama_kelas' => [
+        'required',
+        'string',
+        'max:255',
+        Rule::unique('school_classes'),
+      ],
+    ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(SchoolClass $schoolClass)
-    {
-        return response()->json($schoolClass);
-    }
+    $class = SchoolClass::create($validated);
+    return response()->json($class, 201);
+  }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SchoolClass $schoolClass)
-    {
-        $validated = $request->validate([
-            'level' => ['required', 'integer', 'min:1'],
-            'nama_kelas' => ['required', 'string', 'max:255', Rule::unique('school_classes')->ignore($schoolClass->id)],
-        ]);
+  /**
+   * Display the specified resource.
+   */
+  public function show(SchoolClass $schoolClass)
+  {
+    return response()->json($schoolClass);
+  }
 
-        $schoolClass->update($validated);
-        return response()->json($schoolClass);
-    }
+  /**
+   * Update the specified resource in storage.
+   */
+  public function update(Request $request, SchoolClass $schoolClass)
+  {
+    $validated = $request->validate([
+      'level' => ['required', 'integer', 'min:1'],
+      'nama_kelas' => [
+        'required',
+        'string',
+        'max:255',
+        Rule::unique('school_classes')->ignore($schoolClass->id),
+      ],
+    ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SchoolClass $schoolClass)
-    {
-        $schoolClass->delete();
-        return response()->noContent();
-    }
+    $schoolClass->update($validated);
+    return response()->json($schoolClass);
+  }
 
-    public function all()
-    {
-        return response()->json(SchoolClass::orderBy('level')->orderBy('nama_kelas')->get());
-    }
+  /**
+   * Remove the specified resource from storage.
+   */
+  public function destroy(SchoolClass $schoolClass)
+  {
+    $schoolClass->delete();
+    return response()->noContent();
+  }
+
+  public function all()
+  {
+    return response()->json(
+      SchoolClass::orderBy('level')->orderBy('nama_kelas')->get(),
+    );
+  }
 }

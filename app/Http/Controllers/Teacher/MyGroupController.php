@@ -10,12 +10,12 @@ use Inertia\Inertia;
 
 class MyGroupController extends Controller
 {
-    public function index()
-    {
-        $user = Auth::user();
-        $group = BtqGroup::where('teacher_id', $user->teacher?->id)
-            ->with(['students.progress', 'teacher.user'])
-            ->first();
-        return Inertia::render('Teacher/MyGroup', ['btqGroup' => $group]);
-    }
+  public function index()
+  {
+    $user = Auth::user();
+    $group = BtqGroup::where('teacher_id', $user->teacher?->id)
+      ->with(['students.progress', 'teacher.user'])
+      ->first();
+    return Inertia::render('Teacher/MyGroup', ['btqGroup' => $group]);
+  }
 }
