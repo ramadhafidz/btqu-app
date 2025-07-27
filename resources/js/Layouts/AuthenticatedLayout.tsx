@@ -35,6 +35,15 @@ export default function Authenticated({
                   Dashboard
                 </NavLink>
 
+                {user.role === 'superadmin' && (
+                  <NavLink
+                    href={route('superadmin.users.index')}
+                    active={route().current('superadmin.users.index')}
+                  >
+                    Kelola User
+                  </NavLink>
+                )}
+
                 {user.role === 'guru' && (
                   <NavLink
                     href={route('teacher.my-group.index')}
@@ -52,12 +61,12 @@ export default function Authenticated({
                     >
                       Kelola Kelas
                     </NavLink>
-                    <NavLink
+                    {/* <NavLink
                       href={route('admin.teachers.index')}
                       active={route().current('admin.teachers.index')}
                     >
                       Kelola Guru
-                    </NavLink>
+                    </NavLink> */}
                     <NavLink
                       href={route('admin.students.index')}
                       active={route().current('admin.students.index')}

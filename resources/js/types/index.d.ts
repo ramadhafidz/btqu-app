@@ -3,7 +3,7 @@ export interface User {
   name: string;
   email: string;
   email_verified_at?: string;
-  role: 'koordinator' | 'guru';
+  role: 'koordinator' | 'guru' | 'superadmin';
 }
 
 export interface SchoolClass {

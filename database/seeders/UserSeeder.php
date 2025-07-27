@@ -14,6 +14,13 @@ class UserSeeder extends Seeder
    */
   public function run(): void
   {
+    User::create([
+      'name' => 'Super Admin',
+      'email' => 'superadmin@example.com',
+      'password' => Hash::make('superadmin123'), // Ganti dengan password yang aman
+      'role' => 'superadmin',
+    ]);
+
     // 1. Buat user koordinator
     User::create([
       'name' => 'Koordinator Utama',

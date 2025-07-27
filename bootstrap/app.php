@@ -22,7 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->alias([
       'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
       'auth' => \App\Http\Middleware\Authenticate::class,
-      'role.koordinator' => \App\Http\Middleware\CheckRoleKoordinator::class, // <-- Pastikan baris ini ada
+      'role.koordinator' => \App\Http\Middleware\CheckRoleKoordinator::class,
+      'role.superadmin' => \App\Http\Middleware\CheckRoleSuperadmin::class,
     ]);
   })
   ->withExceptions(function (Exceptions $exceptions) {

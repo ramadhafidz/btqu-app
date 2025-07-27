@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\BtqGroup;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -14,18 +15,25 @@ class DashboardController extends Controller
     $user = Auth::user();
 
     if ($user->role === 'guru') {
-      // Jika user adalah guru, cari grup yang dia ajar
       $group = BtqGroup::where('teacher_id', $user->teacher?->id)
         ->with(['students.progress', 'teacher.user'])
         ->first();
-
-      // Tampilkan halaman khusus untuk guru dan kirim data grupnya
       return Inertia::render('Teacher/Dashboard', [
         'btqGroup' => $group,
       ]);
+    } elseif ($user->role === 'koordinator') {
+      return Inertia::render('Dashboard');
+    } elseif ($user->role === 'superadmin') {
+      // Data yang mungkin dibutuhkan Superadmin di dashboard-nya
+      $stats = [
+        'total_users' => User::whereIn('role', ['guru', 'koordinator'])->count(),
+        'total_teachers' => User::where('role', 'guru')->count(),
+        'total_coordinators' => User::where('role', 'koordinator')->count(),
+      ];
+      return Inertia::render('Superadmin/Dashboard', ['stats' => $stats]);
     }
 
-    // Jika bukan guru (atau koordinator), tampilkan dashboard biasa
-    return Inertia::render('Dashboard');
+    // Fallback jika role tidak terdefinisi
+    return redirect('/');
   }
 }

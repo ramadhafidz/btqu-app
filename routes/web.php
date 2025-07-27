@@ -22,6 +22,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\BtqGroup;
+use App\Http\Controllers\Superadmin\UserController as SuperadminUserController;
 
 Route::get('/', function () {
   return Inertia::render('Welcome', [
@@ -37,6 +38,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
   Route::get('/dashboard', [DashboardController::class, 'index'])->name(
     'dashboard',
   );
+
+  Route::prefix('superadmin')
+    ->name('superadmin.')
+    ->middleware('role.superadmin')
+    ->group(function () {
+      Route::get('/users', [SuperadminUserController::class, 'index'])->name(
+        'users.index',
+      );
+      Route::patch('/users/{user}/change-role', [
+        SuperadminUserController::class,
+        'changeRole',
+      ])->name('users.change-role');
+
+      Route::prefix('api')->name('api.')->group(function() {
+        Route::apiResource('teachers', TeacherController::class);
+      });
+    });
 
   // --- RUTE KHUSUS KOORDINATOR ---
   Route::prefix('admin')
@@ -66,7 +84,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('api.')
         ->group(function () {
           Route::apiResource('school-classes', SchoolClassController::class);
-          Route::apiResource('teachers', TeacherController::class);
           Route::apiResource('students', StudentController::class);
           Route::apiResource('btq-groups', BtqGroupController::class);
           Route::get('all-school-classes', [
