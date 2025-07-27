@@ -34,7 +34,7 @@ Route::get('/', function () {
 });
 
 // --- RUTE YANG MEMBUTUHKAN LOGIN ---
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
   Route::get('/dashboard', [DashboardController::class, 'index'])->name(
     'dashboard',
   );
@@ -51,9 +51,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'changeRole',
       ])->name('users.change-role');
 
-      Route::prefix('api')->name('api.')->group(function() {
-        Route::apiResource('teachers', TeacherController::class);
-      });
+      Route::get('/password-resets', [
+        SuperadminUserController::class,
+        'passwordRequestsIndex',
+      ])->name('password-resets.index');
+
+      Route::post('/users/{user}/reset-password', [
+        SuperadminUserController::class,
+        'resetPassword',
+      ])->name('users.reset-password');
+
+      Route::prefix('api')
+        ->name('api.')
+        ->group(function () {
+          Route::apiResource('teachers', TeacherController::class);
+        });
     });
 
   // --- RUTE KHUSUS KOORDINATOR ---
@@ -66,10 +78,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         '/school-classes',
         fn() => Inertia::render('Admin/SchoolClasses/Index'),
       )->name('school-classes.index');
-      Route::get(
-        '/teachers',
-        fn() => Inertia::render('Admin/Teachers/Index'),
-      )->name('teachers.index');
+      //   Route::get(
+      //     '/teachers',
+      //     fn() => Inertia::render('Admin/Teachers/Index'),
+      //   )->name('teachers.index');
       Route::get(
         '/students',
         fn() => Inertia::render('Admin/Students/Index'),

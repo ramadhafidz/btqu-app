@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
       'auth' => \App\Http\Middleware\Authenticate::class,
       'role.koordinator' => \App\Http\Middleware\CheckRoleKoordinator::class,
       'role.superadmin' => \App\Http\Middleware\CheckRoleSuperadmin::class,
+      'password.changed' => \App\Http\Middleware\EnsurePasswordIsChanged::class,
     ]);
   })
   ->withExceptions(function (Exceptions $exceptions) {

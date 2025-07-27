@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\User;
+use App\Models\PasswordResetRequest;
 
 class PasswordResetLinkController extends Controller
 {
@@ -29,21 +31,25 @@ class PasswordResetLinkController extends Controller
    */
   public function store(Request $request): RedirectResponse
   {
-    $request->validate([
-      'email' => 'required|email',
-    ]);
+    $request->validate(['email' => 'required|email|exists:users,email']);
+    $user = User::where('email', $request->email)->first();
 
-    // We will send the password reset link to this user. Once we have attempted
-    // to send the link, we will examine the response then see the message we
-    // need to show to the user. Finally, we'll send out a proper response.
-    $status = Password::sendResetLink($request->only('email'));
+    $existingRequest = PasswordResetRequest::where('user_id', $user->id)
+      ->where('status', 'pending')
+      ->exists();
 
-    if ($status == Password::RESET_LINK_SENT) {
-      return back()->with('status', __($status));
+    if ($existingRequest) {
+      return back()->with(
+        'status',
+        'Anda sudah memiliki permintaan reset password yang sedang diproses.',
+      );
     }
 
-    throw ValidationException::withMessages([
-      'email' => [trans($status)],
+    PasswordResetRequest::create([
+      'user_id' => $user->id,
+      'status' => 'pending',
     ]);
+
+    return back()->with('status', 'Permintaan reset password telah berhasil dikirim ke Superadmin.');
   }
 }

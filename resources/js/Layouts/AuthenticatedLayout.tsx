@@ -36,12 +36,22 @@ export default function Authenticated({
                 </NavLink>
 
                 {user.role === 'superadmin' && (
-                  <NavLink
-                    href={route('superadmin.users.index')}
-                    active={route().current('superadmin.users.index')}
-                  >
-                    Kelola User
-                  </NavLink>
+                  <>
+                    <NavLink
+                      href={route('superadmin.users.index')}
+                      active={route().current('superadmin.users.index')}
+                    >
+                      Kelola User
+                    </NavLink>
+                    <NavLink
+                      href={route('superadmin.password-resets.index')}
+                      active={route().current(
+                        'superadmin.password-resets.index'
+                      )}
+                    >
+                      Permintaan Reset
+                    </NavLink>
+                  </>
                 )}
 
                 {user.role === 'guru' && (
