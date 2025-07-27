@@ -1,55 +1,46 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-
 import { Head } from '@inertiajs/react';
-
 import { PageProps } from '@/types';
-
 import { useEffect, useState } from 'react';
-
 import axios from 'axios';
-
 import LineChart from '@/Components/Charts/LineChart';
-
 import KpiCard from '@/Components/KpiCard';
+import { format, parseISO, isWithinInterval } from 'date-fns';
+import { id } from 'date-fns/locale';
+import {
+  BookOpenIcon,
+  ClipboardDocumentCheckIcon,
+} from '@heroicons/react/24/outline';
 
 export default function Dashboard({ auth }: PageProps) {
   const [loading, setLoading] = useState(true);
-
   const [chartsData, setChartsData] = useState<any>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   useEffect(() => {
     axios
-
       .get(route('api.charts.teacher-dashboard'))
-
       .then((res) => setChartsData(res.data))
-
       .catch((err) => console.error(err))
-
       .finally(() => setLoading(false));
   }, []);
 
   const dailyProgressData = chartsData?.dailyProgress && {
-    labels: chartsData.dailyProgress.map((d: any) => d.date),
-
+    labels: chartsData.dailyProgress.map((d: any) =>
+      format(parseISO(d.date), 'dd MMM', { locale: id })
+    ),
     datasets: [
       {
         label: 'Halaman Selesai',
-
         data: chartsData.dailyProgress.map((d: any) => d.pages),
-
         borderColor: 'rgb(75, 192, 192)',
-
         backgroundColor: 'rgba(75, 192, 192, 0.5)',
       },
-
       {
         label: 'Hafalan Baru',
-
         data: chartsData.dailyProgress.map((d: any) => d.hafalan),
-
         borderColor: 'rgb(255, 99, 132)',
-
         backgroundColor: 'rgba(255, 99, 132, 0.5)',
       },
     ],
@@ -94,13 +85,17 @@ export default function Dashboard({ auth }: PageProps) {
                 <KpiCard
                   title="Rata-rata Halaman/Hari"
                   value={chartsData.avgPagesPerDay}
-                  period="30 hari terakhir"
+                  icon={
+                    <BookOpenIcon className="w-8 h-8 text-blue-500" />
+                  }
                 />
 
                 <KpiCard
                   title="Rata-rata Hafalan/Hari"
                   value={chartsData.avgHafalanPerDay}
-                  period="30 hari terakhir"
+                  icon={
+                    <ClipboardDocumentCheckIcon className="w-8 h-8 text-green-500" />
+                  }
                 />
               </div>
 
