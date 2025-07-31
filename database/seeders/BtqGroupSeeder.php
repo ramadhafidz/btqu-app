@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Student;
-use App\Models\Teacher;
+use App\Models\Employee;
 use App\Models\BtqGroup;
 use Illuminate\Support\Facades\DB;
 
@@ -23,7 +23,9 @@ class BtqGroupSeeder extends Seeder
     DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
     // Ambil semua guru dan siswa yang ada
-    $teachers = Teacher::all();
+    $teachers = Employee::whereHas('user', function ($query) {
+      $query->where('role', 'guru');
+    })->get();
     $students = Student::with('schoolClass')->get();
 
     // Kelompokkan siswa berdasarkan level kelas mereka

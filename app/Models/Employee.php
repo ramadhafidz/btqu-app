@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Teacher extends Model
+class Employee extends Model
 {
   use HasFactory;
 
@@ -17,6 +17,6 @@ class Teacher extends Model
 
   public function btqGroup()
   {
-    return $this->hasOne(BtqGroup::class);
+    return $this->hasOne(BtqGroup::class, 'teacher_id');
   }
 }

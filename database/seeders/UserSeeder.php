@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Teacher;
+use App\Models\Employee;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
@@ -19,28 +19,36 @@ class UserSeeder extends Seeder
       'email' => 'superadmin@example.com',
       'password' => Hash::make('superadmin123'), // Ganti dengan password yang aman
       'role' => 'superadmin',
+      'password_changed_at' => now(),
     ]);
 
     // 1. Buat user koordinator
-    User::create([
+    $idPegawaiKoor = 'PG6';
+    $koorUser = User::create([
       'name' => 'Koordinator Utama',
       'email' => 'koordinator@example.com',
-      'password' => Hash::make('koor123'),
+      'password' => 'guruquran' . $idPegawaiKoor, // <-- Password dinamis
       'role' => 'koordinator',
+    ]);
+
+    Employee::create([
+      'user_id' => $koorUser->id,
+      'id_pegawai' => $idPegawaiKoor,
     ]);
 
     // 2. Buat 5 user guru + data teacher
     for ($i = 1; $i <= 5; $i++) {
-      $user = User::create([
-        'name' => "Guru $i",
-        'email' => "guru$i@example.com",
-        'password' => Hash::make('guru123'),
+      $idPegawaiGuru = "PG{$i}";
+      $guruUser = User::create([
+        'name' => "Guru {$i}",
+        'email' => "guru{$i}@example.com",
+        'password' => 'guruquran' . $idPegawaiGuru, // <-- Password dinamis
         'role' => 'guru',
       ]);
 
-      Teacher::create([
-        'user_id' => $user->id,
-        'id_pegawai' => "PG$i",
+      Employee::create([
+        'user_id' => $guruUser->id,
+        'id_pegawai' => $idPegawaiGuru,
       ]);
     }
   }

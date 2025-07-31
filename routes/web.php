@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Admin\{
   SchoolClassController,
-  TeacherController,
+  EmployeeController,
   StudentController,
   BtqGroupController,
   PromotionApprovalController,
@@ -43,13 +43,18 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
     ->name('superadmin.')
     ->middleware('role.superadmin')
     ->group(function () {
-      Route::get('/users', [SuperadminUserController::class, 'index'])->name(
-        'users.index',
-      );
-      Route::patch('/users/{user}/change-role', [
-        SuperadminUserController::class,
-        'changeRole',
-      ])->name('users.change-role');
+      Route::resource('/users', SuperadminUserController::class)->except([
+        'show',
+        'create',
+        'edit',
+      ]);
+      //   Route::post('/users', [SuperadminUserController::class, 'store'])->name(
+      //     'users.store',
+      //   );
+      //   Route::patch('/users/{user}/change-role', [
+      //     SuperadminUserController::class,
+      //     'changeRole',
+      //   ])->name('users.change-role');
 
       Route::get('/password-resets', [
         SuperadminUserController::class,
@@ -64,7 +69,9 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
       Route::prefix('api')
         ->name('api.')
         ->group(function () {
-          Route::apiResource('teachers', TeacherController::class);
+          Route::apiResource('employees', EmployeeController::class)->names(
+            'teachers',
+          );
         });
     });
 
@@ -102,7 +109,7 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
             SchoolClassController::class,
             'all',
           ])->name('all-school-classes');
-          Route::get('all-teachers', [TeacherController::class, 'all'])->name(
+          Route::get('all-teachers', [EmployeeController::class, 'all'])->name(
             'all-teachers',
           );
           Route::get('unassigned-students', [

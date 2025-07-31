@@ -18,7 +18,13 @@ class User extends Authenticatable
    *
    * @var list<string>
    */
-  protected $fillable = ['name', 'email', 'password', 'password_changed_at'];
+  protected $fillable = [
+    'name',
+    'email',
+    'password',
+    'password_changed_at',
+    'role',
+  ];
 
   /**
    * The attributes that should be hidden for serialization.
@@ -41,8 +47,8 @@ class User extends Authenticatable
     ];
   }
 
-  public function teacher()
+  public function employee()
   {
-    return $this->hasOne(Teacher::class);
+    return $this->hasOne(Employee::class);
   }
 }
