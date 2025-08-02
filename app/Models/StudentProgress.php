@@ -22,4 +22,9 @@ class StudentProgress extends Model
   {
     return $this->belongsTo(Student::class);
   }
+
+  public function progressLogs()
+  {
+    return $this->hasMany(StudentProgressLog::class);
+  }
 }

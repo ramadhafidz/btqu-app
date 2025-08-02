@@ -26,6 +26,11 @@ class Student extends Model
     return $this->hasOne(StudentProgress::class);
   }
 
+  public function progressLogs()
+  {
+    return $this->hasManyThrough(StudentProgressLog::class, StudentProgress::class);
+  }
+
   public function btqGroup()
   {
     return $this->belongsTo(BtqGroup::class);

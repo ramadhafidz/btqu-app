@@ -7,11 +7,19 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\BtqGroup;
 use App\Models\StudentProgress;
+use App\Services\DashboardMetricsService;
 
 class ChartController extends Controller
 {
   // Periode analisis data
   protected $days = 30;
+  
+  protected $dashboardService;
+
+  public function __construct(DashboardMetricsService $dashboardService)
+  {
+    $this->dashboardService = $dashboardService;
+  }
 
   /**
    * Menyediakan data untuk dashboard guru.
@@ -200,5 +208,107 @@ class ChartController extends Controller
       ->get();
 
     return response()->json($distribution);
+  }
+
+  /**
+   * Enhanced teacher dashboard with comprehensive metrics
+   */
+  public function enhancedTeacherDashboard(Request $request)
+  {
+    $user = Auth::user();
+    
+    if (!$user->teacher) {
+      return response()->json(['message' => 'Tidak memiliki akses guru'], 403);
+    }
+
+    $filters = $this->buildFilters($request);
+    $metrics = $this->dashboardService->getTeacherMetrics($user->teacher->id, $filters);
+
+    if (isset($metrics['error'])) {
+      return response()->json(['message' => $metrics['error']], 404);
+    }
+
+    return response()->json($metrics);
+  }
+
+  /**
+   * Enhanced coordinator dashboard with comprehensive metrics
+   */
+  public function enhancedCoordinatorDashboard(Request $request)
+  {
+    $user = Auth::user();
+    
+    if ($user->role !== 'koordinator') {
+      return response()->json(['message' => 'Tidak memiliki akses koordinator'], 403);
+    }
+
+    $filters = $this->buildFilters($request);
+    $metrics = $this->dashboardService->getCoordinatorMetrics($filters);
+
+    return response()->json($metrics);
+  }
+
+  /**
+   * Get teacher metrics for specific teacher (coordinator access)
+   */
+  public function getTeacherMetrics(Request $request, $teacherId)
+  {
+    $user = Auth::user();
+    
+    if ($user->role !== 'koordinator') {
+      return response()->json(['message' => 'Tidak memiliki akses koordinator'], 403);
+    }
+
+    $filters = $this->buildFilters($request);
+    $metrics = $this->dashboardService->getTeacherMetrics($teacherId, $filters);
+
+    if (isset($metrics['error'])) {
+      return response()->json(['message' => $metrics['error']], 404);
+    }
+
+    return response()->json($metrics);
+  }
+
+  /**
+   * Clear dashboard cache
+   */
+  public function clearDashboardCache(Request $request)
+  {
+    $user = Auth::user();
+    
+    if (!in_array($user->role, ['koordinator', 'superadmin'])) {
+      return response()->json(['message' => 'Tidak memiliki akses'], 403);
+    }
+
+    $pattern = $request->input('pattern');
+    $this->dashboardService->clearCache($pattern);
+
+    return response()->json(['message' => 'Cache berhasil dibersihkan']);
+  }
+
+  /**
+   * Build filters from request parameters
+   */
+  protected function buildFilters(Request $request)
+  {
+    $filters = [];
+
+    if ($request->has('date_from')) {
+      $filters['date_from'] = $request->input('date_from');
+    }
+
+    if ($request->has('date_to')) {
+      $filters['date_to'] = $request->input('date_to');
+    }
+
+    if ($request->has('class_level')) {
+      $filters['class_level'] = $request->input('class_level');
+    }
+
+    if ($request->has('group_id')) {
+      $filters['group_id'] = $request->input('group_id');
+    }
+
+    return $filters;
   }
 }
