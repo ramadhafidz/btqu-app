@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import './calendar.css';
 
 .select__control {
   @apply mt-1 block w-full !border-gray-300 focus:!border-indigo-500 focus:!ring-indigo-500 !rounded-md !shadow-sm;
@@ -23,4 +24,126 @@
 
 .select__input:focus {
   box-shadow: none !important;
+}
+
+/* Custom Notistack Styles */
+:root {
+  --notistack-success: #10b981;
+  --notistack-error: #ef4444;
+  --notistack-warning: #f59e0b;
+  --notistack-info: #3b82f6;
+}
+
+/* Notistack Container */
+.SnackbarContainer-root {
+  width: auto !important;
+  max-width: 450px !important;
+  min-width: 350px !important;
+}
+
+/* Notistack Base Styles */
+.SnackbarItem-root {
+  border-radius: 12px !important;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  min-height: 68px !important;
+  margin-bottom: 12px !important;
+  padding: 16px !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Success variant */
+.SnackbarItem-variantSuccess {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+  box-shadow:
+    0 20px 25px -5px rgba(16, 185, 129, 0.3),
+    0 10px 10px -5px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Error variant */
+.SnackbarItem-variantError {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
+  box-shadow:
+    0 20px 25px -5px rgba(239, 68, 68, 0.3),
+    0 10px 10px -5px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Warning variant */
+.SnackbarItem-variantWarning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
+  box-shadow:
+    0 20px 25px -5px rgba(245, 158, 11, 0.3),
+    0 10px 10px -5px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Info variant */
+.SnackbarItem-variantInfo {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+  box-shadow:
+    0 20px 25px -5px rgba(59, 130, 246, 0.3),
+    0 10px 10px -5px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Notistack message text */
+.SnackbarItem-message {
+  display: flex !important;
+  align-items: center !important;
+  line-height: 1.5 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 12px !important; /* Add spacing between icon and text */
+}
+
+/* Icon spacing in notistack */
+.SnackbarItem-message svg {
+  margin-right: 0 !important; /* Remove default margin since we use gap */
+  flex-shrink: 0 !important; /* Prevent icon from shrinking */
+}
+
+/* Notistack action (close button) */
+.SnackbarItem-action {
+  margin-left: auto !important;
+  margin-right: -8px !important;
+  padding-left: 16px !important;
+}
+
+/* Enhanced animations for notistack */
+@keyframes notistackSlideInRight {
+  from {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes notistackSlideOutRight {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
+}
+
+.SnackbarItem-root[data-entering='true'] {
+  animation: notistackSlideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.SnackbarItem-root[data-exiting='true'] {
+  animation: notistackSlideOutRight 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19);
 }

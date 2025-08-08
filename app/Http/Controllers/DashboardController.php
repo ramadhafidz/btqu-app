@@ -15,7 +15,7 @@ class DashboardController extends Controller
     $user = Auth::user();
 
     if ($user->role === 'guru') {
-      $group = BtqGroup::where('teacher_id', $user->teacher?->id)
+      $group = BtqGroup::where('teacher_id', $user->employee?->id)
         ->with(['students.progress', 'teacher.user'])
         ->first();
       return Inertia::render('Teacher/Dashboard', [
@@ -26,7 +26,10 @@ class DashboardController extends Controller
     } elseif ($user->role === 'superadmin') {
       // Data yang mungkin dibutuhkan Superadmin di dashboard-nya
       $stats = [
-        'total_users' => User::whereIn('role', ['guru', 'koordinator'])->count(),
+        'total_users' => User::whereIn('role', [
+          'guru',
+          'koordinator',
+        ])->count(),
         'total_teachers' => User::where('role', 'guru')->count(),
         'total_coordinators' => User::where('role', 'koordinator')->count(),
       ];

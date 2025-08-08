@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\{
   StudentController,
   BtqGroupController,
   PromotionApprovalController,
+  HolidayController,
 };
 use App\Http\Controllers\Teacher\{
   MyGroupController,
@@ -24,13 +25,22 @@ use Inertia\Inertia;
 use App\Models\BtqGroup;
 use App\Http\Controllers\Superadmin\UserController as SuperadminUserController;
 
+// Route::get('/', function () {
+//   return Inertia::render('Welcome', [
+//     'canLogin' => Route::has('login'),
+//     'canRegister' => Route::has('register'),
+//     'laravelVersion' => Application::VERSION,
+//     'phpVersion' => PHP_VERSION,
+//   ]);
+// });
+
 Route::get('/', function () {
-  return Inertia::render('Welcome', [
-    'canLogin' => Route::has('login'),
-    'canRegister' => Route::has('register'),
-    'laravelVersion' => Application::VERSION,
-    'phpVersion' => PHP_VERSION,
-  ]);
+  return redirect()->route('login');
+});
+
+// Test route untuk debug holidays
+Route::get('/', function () {
+  return redirect()->route('login');
 });
 
 // --- RUTE YANG MEMBUTUHKAN LOGIN ---
@@ -83,20 +93,39 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
       // Halaman Admin
       Route::get(
         '/school-classes',
-        fn() => Inertia::render('Admin/SchoolClasses/Index'),
+        fn() => Inertia::render('Admin/SchoolClasses'),
       )->name('school-classes.index');
       //   Route::get(
       //     '/teachers',
-      //     fn() => Inertia::render('Admin/Teachers/Index'),
+      //     fn() => Inertia::render('Admin/Teachers'),
       //   )->name('teachers.index');
-      Route::get(
-        '/students',
-        fn() => Inertia::render('Admin/Students/Index'),
-      )->name('students.index');
+      Route::get('/students', fn() => Inertia::render('Admin/Students'))->name(
+        'students.index',
+      );
       Route::get(
         '/btq-groups',
-        fn() => Inertia::render('Admin/BtqGroups/Index'),
+        fn() => Inertia::render('Admin/BtqGroups'),
       )->name('btq-groups.index');
+
+      // Holidays management
+      Route::get('/holidays', [HolidayController::class, 'index'])->name(
+        'holidays.index',
+      );
+      Route::post('/holidays', [HolidayController::class, 'store'])->name(
+        'holidays.store',
+      );
+      Route::put('/holidays/{holiday}', [
+        HolidayController::class,
+        'update',
+      ])->name('holidays.update');
+      Route::delete('/holidays/{holiday}', [
+        HolidayController::class,
+        'destroy',
+      ])->name('holidays.destroy');
+      Route::post('/holidays/import-national', [
+        HolidayController::class,
+        'importNationalHolidays',
+      ])->name('holidays.import-national');
 
       // API Admin
       Route::prefix('api')

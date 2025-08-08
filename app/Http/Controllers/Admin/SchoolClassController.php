@@ -38,7 +38,13 @@ class SchoolClassController extends Controller
     ]);
 
     $class = SchoolClass::create($validated);
-    return response()->json($class, 201);
+    return response()->json(
+      [
+        'message' => "Kelas baru {$class->level} {$class->nama_kelas} berhasil ditambahkan.",
+        'class' => $class,
+      ],
+      201,
+    );
   }
 
   /**
@@ -54,6 +60,10 @@ class SchoolClassController extends Controller
    */
   public function update(Request $request, SchoolClass $schoolClass)
   {
+    // Simpan data lama untuk pesan
+    $oldLevel = $schoolClass->level;
+    $oldNamaKelas = $schoolClass->nama_kelas;
+
     $validated = $request->validate([
       'level' => ['required', 'integer', 'min:1'],
       'nama_kelas' => [
@@ -65,7 +75,10 @@ class SchoolClassController extends Controller
     ]);
 
     $schoolClass->update($validated);
-    return response()->json($schoolClass);
+    return response()->json([
+      'message' => "Kelas {$oldLevel} {$oldNamaKelas} berhasil diperbarui menjadi {$schoolClass->level} {$schoolClass->nama_kelas}.",
+      'class' => $schoolClass,
+    ]);
   }
 
   /**
@@ -73,8 +86,14 @@ class SchoolClassController extends Controller
    */
   public function destroy(SchoolClass $schoolClass)
   {
+    // Simpan data untuk pesan sebelum dihapus
+    $level = $schoolClass->level;
+    $namaKelas = $schoolClass->nama_kelas;
+
     $schoolClass->delete();
-    return response()->noContent();
+    return response()->json([
+      'message' => "Kelas {$level} {$namaKelas} berhasil dihapus.",
+    ]);
   }
 
   public function all()

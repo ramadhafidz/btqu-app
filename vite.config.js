@@ -10,4 +10,19 @@ export default defineConfig({
     }),
     react(),
   ],
+  server: {
+    host: 'localhost',
+    port: 5173,
+    cors: true,
+    hmr: {
+      host: 'localhost',
+    },
+  },
+  optimizeDeps: {
+    include: [
+      'notistack',
+      '@heroicons/react/24/solid',
+      '@heroicons/react/24/outline',
+    ],
+  },
 });

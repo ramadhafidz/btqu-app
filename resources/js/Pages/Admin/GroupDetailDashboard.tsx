@@ -6,7 +6,13 @@ import { BtqGroup, PageProps } from '@/types';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import LineChart from '@/Components/Charts/LineChart';
+import BarChart from '@/Components/Charts/BarChart';
 import KpiCard from '@/Components/KpiCard';
+import {
+  BookOpenIcon,
+  ClipboardDocumentCheckIcon,
+  ArrowLeftIcon,
+} from '@heroicons/react/24/outline';
 
 export default function GroupDetailDashboard({
   auth,
@@ -35,28 +41,55 @@ export default function GroupDetailDashboard({
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.5)',
       },
+      // Comment dulu hafalan
+      // {
+      //   label: 'Hafalan Baru',
+      //   data: chartsData.dailyProgress.map((d: any) => d.hafalan),
+      //   borderColor: 'rgb(255, 99, 132)',
+      //   backgroundColor: 'rgba(255, 99, 132, 0.5)',
+      // },
+    ],
+  };
+
+  const studentPerformanceChartData = chartsData?.progressPerStudent && {
+    labels: chartsData.progressPerStudent.map((s: any) => s.nama_lengkap),
+    datasets: [
       {
-        label: 'Hafalan Baru',
-        data: chartsData.dailyProgress.map((d: any) => d.hafalan),
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        label: 'Rata-rata Halaman/Hari',
+        data: chartsData.progressPerStudent.map(
+          (s: any) => s.avg_pages_per_day
+        ),
+        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 1,
       },
+      // Future dataset for hafalan (commented)
+      // {
+      //   label: 'Rata-rata Hafalan/Hari',
+      //   data: chartsData.progressPerStudent.map(
+      //     (s: any) => s.avg_hafalan_per_day
+      //   ),
+      //   backgroundColor: 'rgba(16, 185, 129, 0.6)',
+      //   borderColor: 'rgba(16, 185, 129, 1)',
+      //   borderWidth: 1,
+      // },
     ],
   };
 
   return (
     <AuthenticatedLayout
       header={
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-between">
+          <Link
+            href={route('dashboard')}
+            className="group inline-flex w-fit items-center gap-2 text-sm font-medium text-indigo-600 rounded-md px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition"
+          >
+            <ArrowLeftIcon className="h-4 w-4 transition group-hover:-translate-x-0.5" />
+            <span>Kembali ke Dasbor Koordinator</span>
+          </Link>
           <h2 className="font-semibold text-xl text-gray-800 leading-tight">
             Detail Dasbor: {chartsData?.groupName || 'Memuat...'}
           </h2>
-          <Link
-            href={route('dashboard')}
-            className="text-sm text-indigo-600 hover:underline"
-          >
-            &larr; Kembali ke Dasbor Koordinator
-          </Link>
         </div>
       }
     >
@@ -82,12 +115,12 @@ export default function GroupDetailDashboard({
                 <KpiCard
                   title="Rata-rata Halaman/Hari"
                   value={chartsData.avgPagesPerDay}
-                  period="30 hari terakhir"
+                  icon={<BookOpenIcon className="w-8 h-8 text-blue-500" />}
                 />
                 <KpiCard
-                  title="Rata-rata Hafalan/Hari"
-                  value={chartsData.avgHafalanPerDay}
-                  period="30 hari terakhir"
+                  title="Total Halaman Selesai"
+                  value={chartsData.activeDaysInfo?.totalPages || 0}
+                  icon={<BookOpenIcon className="w-8 h-8 text-green-500" />}
                 />
               </div>
 
@@ -101,46 +134,103 @@ export default function GroupDetailDashboard({
                 </div>
               )}
 
-              {/* [BARU] Tabel Rincian Siswa */}
-              {chartsData.progressPerStudent && (
-                <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Rincian Performa Siswa (30 Hari Terakhir)
-                    </h3>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Nama Siswa
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Rata-rata Halaman/Hari
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Rata-rata Hafalan/Hari
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {chartsData.progressPerStudent.map(
-                            (student: any, index: number) => (
-                              <tr key={index}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  {student.nama_lengkap}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {student.avg_pages_per_day}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {student.avg_hafalan_per_day}
-                                </td>
-                              </tr>
-                            )
-                          )}
-                        </tbody>
-                      </table>
+              {/* Student Performance Chart */}
+              {studentPerformanceChartData && (
+                <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Rincian Performa Siswa (30 Hari Terakhir)
+                  </h3>
+                  <BarChart
+                    chartData={studentPerformanceChartData}
+                    title="Rata-rata Halaman/Hari per Siswa"
+                  />
+                </div>
+              )}
+
+              {/* Active Days Info */}
+              {chartsData.activeDaysInfo && (
+                <div className="bg-white shadow-sm sm:rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    {(() => {
+                      const info = chartsData.activeDaysInfo;
+                      const startFmt = info.startDate;
+                      const endFmt = info.endDate;
+                      return `Informasi Hari Aktif (${info.rangeLabel}: ${startFmt} – ${endFmt})`;
+                    })()}
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="bg-gray-50 p-3 rounded">
+                      <div className="font-medium text-gray-600">
+                        Total Hari
+                      </div>
+                      <div className="text-xl font-bold text-blue-600">
+                        {Math.round(chartsData.activeDaysInfo.period)}
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <div className="font-medium text-gray-600">Weekend</div>
+                      <div className="text-xl font-bold text-red-600">
+                        -{chartsData.activeDaysInfo.weekends}
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <div className="font-medium text-gray-600">
+                        Hari Libur
+                      </div>
+                      <div className="text-xl font-bold text-orange-600">
+                        -{chartsData.activeDaysInfo.holidays}
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <div className="font-medium text-gray-600">
+                        Hari Aktif
+                      </div>
+                      <div className="text-xl font-bold text-green-600">
+                        {chartsData.activeDaysInfo.activeDays}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                      <span className="mr-2">📊</span>
+                      Rumus Perhitungan
+                    </h4>
+                    <div className="mb-3 p-3 bg-white rounded border-l-4 border-blue-400">
+                      <div className="text-sm font-medium text-gray-700 mb-1">
+                        Hari Aktif:
+                      </div>
+                      <div className="font-mono text-lg text-blue-800 bg-blue-50 px-3 py-2 rounded inline-block">
+                        {Math.round(chartsData.activeDaysInfo.period)} -{' '}
+                        {chartsData.activeDaysInfo.weekends} -{' '}
+                        {chartsData.activeDaysInfo.holidays} ={' '}
+                        <span className="font-bold text-blue-900">
+                          {chartsData.activeDaysInfo.activeDays}
+                        </span>{' '}
+                        hari
+                      </div>
+                    </div>
+                    <div className="mb-3 p-3 bg-white rounded border-l-4 border-green-400">
+                      <div className="text-sm font-medium text-gray-700 mb-1">
+                        Rata-rata Halaman per Hari:
+                      </div>
+                      <div className="font-mono text-lg text-green-800 bg-green-50 px-3 py-2 rounded inline-block">
+                        {chartsData.activeDaysInfo.totalPages} ÷{' '}
+                        {chartsData.activeDaysInfo.activeDays} ={' '}
+                        <span className="font-bold text-green-900">
+                          {chartsData.avgPagesPerDay}
+                        </span>{' '}
+                        hlm/hari
+                      </div>
+                    </div>
+                    <div className="mt-3 p-3 bg-amber-50 rounded border border-amber-200">
+                      <div className="text-sm text-amber-800">
+                        <span className="font-medium">💡 Catatan:</span>{' '}
+                        Perhitungan menggunakan hari aktif (
+                        <span className="font-semibold">
+                          {chartsData.activeDaysInfo.activeDays} hari
+                        </span>
+                        ) untuk konsistensi seluruh sistem.
+                      </div>
                     </div>
                   </div>
                 </div>

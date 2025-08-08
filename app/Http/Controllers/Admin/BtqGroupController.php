@@ -54,17 +54,24 @@ class BtqGroupController extends Controller
     $validated = $request->validate(
       [
         'teacher_id' => [
-          'sometimes',
-          'required',
-          'exists:teachers,id',
-          Rule::unique('btq_groups')->ignore($btqGroup->id),
+          'sometimes', // hanya validasi jika dikirim
+          'nullable', // boleh null untuk melepas guru
+          'exists:employees,id', // tabel sebenarnya adalah employees
+          Rule::unique('btq_groups', 'teacher_id')->ignore($btqGroup->id),
         ],
       ],
       [
         'teacher_id.unique' => 'Guru ini sudah mengajar di kelompok lain.',
+        'teacher_id.exists' => 'Guru tidak ditemukan.',
       ],
     );
 
+    if (
+      array_key_exists('teacher_id', $validated) &&
+      !$validated['teacher_id']
+    ) {
+      $validated['teacher_id'] = null;
+    }
     $btqGroup->update($validated);
 
     return response()->json($btqGroup->load(['teacher.user', 'students']));

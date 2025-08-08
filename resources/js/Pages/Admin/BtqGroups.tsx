@@ -1,4 +1,4 @@
-// resources/js/Pages/Admin/BtqGroups/Index.tsx
+// resources/js/Pages/Admin/BtqGroups.tsx
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
@@ -215,7 +215,12 @@ export default function Index({ auth }: PageProps) {
               </p>
             </div>
             <div className="flex items-center gap-4">
+              <label htmlFor="filterLevel" className="sr-only">
+                Filter berdasarkan Level
+              </label>
               <select
+                id="filterLevel"
+                aria-label="Filter berdasarkan Level"
                 value={filterLevel}
                 onChange={(e) => setFilterLevel(e.target.value)}
                 className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
@@ -265,6 +270,8 @@ export default function Index({ auth }: PageProps) {
                               <button
                                 onClick={() => deleteGroup(group)}
                                 className="text-gray-400 hover:text-red-500"
+                                title="Hapus Grup"
+                                aria-label="Hapus Grup"
                               >
                                 <TrashIcon className="w-5 h-5" />
                               </button>
@@ -364,6 +371,7 @@ export default function Index({ auth }: PageProps) {
             <select
               name="level"
               id="level"
+              aria-label="Pilih Level untuk Grup Baru"
               value={groupFormData.level}
               required
               onChange={(e) => setGroupFormData({ level: e.target.value })}
@@ -465,7 +473,8 @@ export default function Index({ auth }: PageProps) {
                               className={cx(
                                 'cursor-pointer select-none relative py-2 px-3',
                                 highlightedIndex === index && 'bg-indigo-100',
-                                selectedItem?.id_pegawai === item.id_pegawai && 'font-semibold'
+                                selectedItem?.id_pegawai === item.id_pegawai &&
+                                  'font-semibold'
                               )}
                               {...getItemProps({
                                 key: item.id_pegawai,
@@ -503,7 +512,7 @@ export default function Index({ auth }: PageProps) {
         </div>
       </Modal>
 
-      <Modal show={isStudentModalOpen} onClose={closeModal} maxWidth="4xl">
+      <Modal show={isStudentModalOpen} onClose={closeModal} maxWidth="2xl">
         <div className="p-6">
           <h2 className="text-lg font-medium text-gray-900 border-b pb-2">
             Atur Siswa untuk {getGroupName(currentGroup)}
@@ -529,9 +538,11 @@ export default function Index({ auth }: PageProps) {
                     </li>
                   ))}
                   {currentGroup?.students.length === 0 && (
-                    <p className="italic text-gray-500 p-2">
-                      Tidak ada anggota.
-                    </p>
+                    <li>
+                      <p className="italic text-gray-500 p-2">
+                        Tidak ada anggota.
+                      </p>
+                    </li>
                   )}
                 </ul>
               </div>
@@ -556,9 +567,11 @@ export default function Index({ auth }: PageProps) {
                     </li>
                   ))}
                   {unassignedStudents.length === 0 && (
-                    <p className="italic text-gray-500 p-2">
-                      Tidak ada siswa tersedia.
-                    </p>
+                    <li>
+                      <p className="italic text-gray-500 p-2">
+                        Tidak ada siswa tersedia.
+                      </p>
+                    </li>
                   )}
                 </ul>
               </div>

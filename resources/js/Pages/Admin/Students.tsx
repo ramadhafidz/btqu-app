@@ -268,6 +268,7 @@ export default function Index({ auth }: PageProps) {
                 value={filterLevel}
                 onChange={(e) => setFilterLevel(e.target.value)}
                 className="w-1/2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                aria-label="Filter berdasarkan level"
               >
                 <option value="">Semua Level</option>
                 {uniqueLevels.map((level) => (
@@ -281,6 +282,7 @@ export default function Index({ auth }: PageProps) {
                 onChange={(e) => setFilterClass(e.target.value)}
                 disabled={!filterLevel}
                 className="w-1/2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm disabled:bg-gray-200"
+                aria-label="Filter berdasarkan kelas"
               >
                 <option value="">Semua Kelas</option>
                 {availableClasses.map((sc) => (
@@ -344,12 +346,14 @@ export default function Index({ auth }: PageProps) {
                       <button
                         onClick={() => openEditModal(student)}
                         className="font-medium text-indigo-600 hover:text-indigo-800 p-2"
+                        title="Edit siswa"
                       >
                         <PencilSquareIcon className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => deleteStudent(student)}
                         className="font-medium text-red-600 hover:text-red-800 p-2 ml-2"
+                        title="Hapus siswa"
                       >
                         <TrashIcon className="w-5 h-5" />
                       </button>
@@ -423,6 +427,8 @@ export default function Index({ auth }: PageProps) {
                   value={selectedLevel}
                   onChange={handleLevelChange}
                   className="block w-1/3 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                  title="Pilih Level Kelas"
+                  aria-label="Pilih Level Kelas"
                 >
                   <option value="">Pilih Level</option>
                   {uniqueLevels.map((level) => (
@@ -439,6 +445,7 @@ export default function Index({ auth }: PageProps) {
                   required
                   disabled={!selectedLevel}
                   className="block w-2/3 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm disabled:bg-gray-200"
+                  aria-label="Pilih Nama Kelas"
                 >
                   <option value="">Pilih Nama Kelas</option>
                   {filteredClasses.map((sc) => (
@@ -465,6 +472,8 @@ export default function Index({ auth }: PageProps) {
                   onChange={handleInputChange}
                   className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                   required
+                  title="Pilih Jilid BTQ"
+                  aria-label="Pilih Jilid BTQ"
                 >
                   <option value="">Pilih Jilid</option>
                   {Object.entries(JILID_INFO).map(([key, value]) => (

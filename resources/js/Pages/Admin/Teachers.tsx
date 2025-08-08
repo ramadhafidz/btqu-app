@@ -223,14 +223,16 @@ export default function Index({ auth }: PageProps) {
                       <button
                         onClick={() => openEditModal(teacher)}
                         className="font-medium text-indigo-600 hover:text-indigo-800 p-2"
+                        title="Edit guru"
                       >
                         <PencilSquareIcon className="w-5 h-5" />
-                      </button>
                       <button
                         onClick={() => deleteTeacher(teacher)}
                         className="font-medium text-red-600 hover:text-red-800 p-2 ml-2"
+                        title="Hapus guru"
                       >
                         <TrashIcon className="w-5 h-5" />
+                      </button>
                       </button>
                     </td>
                   </tr>

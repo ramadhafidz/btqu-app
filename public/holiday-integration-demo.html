@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Holiday Integration Demo - BTQ System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .timeline-item {
+        position: relative;
+      }
+      .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 30px;
+        bottom: -10px;
+        width: 2px;
+        background: #e5e7eb;
+      }
+      .timeline-item:last-child::before {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+          🎯 Holiday Integration Demo
+        </h1>
+        <p class="text-gray-600">
+          Bagaimana hari libur mempengaruhi perhitungan dashboard BTQ system
+        </p>
+      </div>
+
+      <!-- Integration Flow -->
+      <div class="grid lg:grid-cols-2 gap-8 mb-8">
+        <!-- Before Integration -->
+        <div
+          class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-red-400"
+        >
+          <h2 class="text-xl font-semibold text-red-700 mb-4">
+            ❌ Sebelum Integrasi
+          </h2>
+          <div class="space-y-3">
+            <div class="bg-red-50 p-3 rounded">
+              <p class="text-sm text-red-700">
+                <strong>Problem:</strong> Hari libur dihitung sebagai hari aktif
+              </p>
+            </div>
+            <div class="bg-red-50 p-3 rounded">
+              <p class="text-sm text-red-700">
+                <strong>Impact:</strong> Rata-rata aktivitas rendah
+              </p>
+            </div>
+            <div class="bg-red-50 p-3 rounded">
+              <p class="text-sm text-red-700">
+                <strong>Formula:</strong> Aktivitas / (30 hari - weekend) = bias
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- After Integration -->
+        <div
+          class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-400"
+        >
+          <h2 class="text-xl font-semibold text-green-700 mb-4">
+            ✅ Setelah Integrasi
+          </h2>
+          <div class="space-y-3">
+            <div class="bg-green-50 p-3 rounded">
+              <p class="text-sm text-green-700">
+                <strong>Solution:</strong> Hari libur dikecualikan dari
+                perhitungan
+              </p>
+            </div>
+            <div class="bg-green-50 p-3 rounded">
+              <p class="text-sm text-green-700">
+                <strong>Impact:</strong> Rata-rata aktivitas akurat
+              </p>
+            </div>
+            <div class="bg-green-50 p-3 rounded">
+              <p class="text-sm text-green-700">
+                <strong>Formula:</strong> Aktivitas / (30 - weekend - libur) =
+                akurat
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Process -->
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">
+          🔄 Proses Integrasi Real-time
+        </h2>
+
+        <div class="space-y-6">
+          <div class="timeline-item flex items-start">
+            <div
+              class="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold mr-4 flex-shrink-0"
+            >
+              1
+            </div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800">
+                Admin Mengelola Hari Libur
+              </h3>
+              <p class="text-gray-600 text-sm">
+                Koordinator menambah/edit/hapus hari libur di halaman admin
+              </p>
+              <div
+                class="mt-2 inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs"
+              >
+                📅 Data tersimpan di tabel holidays
+              </div>
+            </div>
+          </div>
+
+          <div class="timeline-item flex items-start">
+            <div
+              class="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold mr-4 flex-shrink-0"
+            >
+              2
+            </div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800">
+                ChartController Mengambil Data
+              </h3>
+              <p class="text-gray-600 text-sm">
+                Setiap request dashboard, controller query tabel holidays
+              </p>
+              <div class="mt-2 bg-gray-100 p-2 rounded text-xs font-mono">
+                $holidays = Holiday::pluck('tanggal')
+              </div>
+            </div>
+          </div>
+
+          <div class="timeline-item flex items-start">
+            <div
+              class="bg-purple-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold mr-4 flex-shrink-0"
+            >
+              3
+            </div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800">
+                Filter Aktivitas Hari Aktif
+              </h3>
+              <p class="text-gray-600 text-sm">
+                Query log aktivitas mengecualikan weekend & hari libur
+              </p>
+              <div class="mt-2 bg-gray-100 p-2 rounded text-xs font-mono">
+                ->whereNotIn(DATE(created_at), $holidays)
+              </div>
+            </div>
+          </div>
+
+          <div class="timeline-item flex items-start">
+            <div
+              class="bg-orange-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold mr-4 flex-shrink-0"
+            >
+              4
+            </div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800">
+                Perhitungan Hari Aktif
+              </h3>
+              <p class="text-gray-600 text-sm">
+                Menghitung pembagi yang akurat untuk rata-rata
+              </p>
+              <div class="mt-2 bg-gray-100 p-2 rounded text-xs font-mono">
+                activeDays = period - weekends - holidays
+              </div>
+            </div>
+          </div>
+
+          <div class="timeline-item flex items-start">
+            <div
+              class="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold mr-4 flex-shrink-0"
+            >
+              5
+            </div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800">Dashboard Terupdate</h3>
+              <p class="text-gray-600 text-sm">
+                User melihat statistik yang akurat dan fair
+              </p>
+              <div
+                class="mt-2 inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs"
+              >
+                📊 Real-time update
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example Calculation -->
+      <div class="grid md:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            📊 Contoh Perhitungan
+          </h3>
+
+          <div class="space-y-4">
+            <div class="border rounded-lg p-4">
+              <h4 class="font-medium text-gray-700 mb-2">
+                Periode Analisis: 30 Hari
+              </h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span>Total hari:</span>
+                  <span class="font-mono">30</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Weekend (Sabtu-Minggu):</span>
+                  <span class="font-mono text-orange-600">-8</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Hari libur nasional:</span>
+                  <span class="font-mono text-red-600">-3</span>
+                </div>
+                <hr />
+                <div class="flex justify-between font-semibold">
+                  <span>Hari aktif efektif:</span>
+                  <span class="font-mono text-green-600">19</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="border rounded-lg p-4">
+              <h4 class="font-medium text-gray-700 mb-2">
+                Impact pada Rata-rata
+              </h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span>Total aktivitas:</span>
+                  <span class="font-mono">95 halaman</span>
+                </div>
+                <div class="flex justify-between text-red-600">
+                  <span>Rata-rata (old):</span>
+                  <span class="font-mono">95 ÷ 22 = 4.3</span>
+                </div>
+                <div class="flex justify-between text-green-600 font-semibold">
+                  <span>Rata-rata (new):</span>
+                  <span class="font-mono">95 ÷ 19 = 5.0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">🎯 Benefits</h3>
+
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <div
+                class="bg-green-100 text-green-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 flex-shrink-0"
+              >
+                ✓
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-700">Akurasi Tinggi</h4>
+                <p class="text-sm text-gray-600">
+                  Perhitungan berdasarkan hari aktif sebenarnya
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start">
+              <div
+                class="bg-green-100 text-green-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 flex-shrink-0"
+              >
+                ✓
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-700">Perbandingan Fair</h4>
+                <p class="text-sm text-gray-600">
+                  Semua grup menggunakan base calculation yang sama
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start">
+              <div
+                class="bg-green-100 text-green-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 flex-shrink-0"
+              >
+                ✓
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-700">Real-time Update</h4>
+                <p class="text-sm text-gray-600">
+                  Perubahan hari libur langsung terrefleksi
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start">
+              <div
+                class="bg-green-100 text-green-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 flex-shrink-0"
+              >
+                ✓
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-700">Historical Accuracy</h4>
+                <p class="text-sm text-gray-600">
+                  Data historis juga ter-rekalkulasi
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Integration Points -->
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+          🔗 Integration Points
+        </h3>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="text-center">
+            <div
+              class="bg-blue-100 text-blue-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 text-2xl"
+            >
+              👨‍🏫
+            </div>
+            <h4 class="font-medium text-gray-700 mb-2">Teacher Dashboard</h4>
+            <p class="text-sm text-gray-600">
+              Statistik grup personal dengan hari aktif akurat
+            </p>
+          </div>
+
+          <div class="text-center">
+            <div
+              class="bg-green-100 text-green-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 text-2xl"
+            >
+              👩‍💼
+            </div>
+            <h4 class="font-medium text-gray-700 mb-2">
+              Coordinator Dashboard
+            </h4>
+            <p class="text-sm text-gray-600">
+              Overview semua grup dengan perbandingan yang fair
+            </p>
+          </div>
+
+          <div class="text-center">
+            <div
+              class="bg-purple-100 text-purple-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 text-2xl"
+            >
+              📊
+            </div>
+            <h4 class="font-medium text-gray-700 mb-2">Group Detail</h4>
+            <p class="text-sm text-gray-600">
+              Analisis mendalam per grup dengan data akurat
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="text-center mt-8 text-gray-500">
+        <p class="text-sm">
+          🎉 Sistem hari libur sudah terintegrasi sempurna dengan dashboard BTQ!
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

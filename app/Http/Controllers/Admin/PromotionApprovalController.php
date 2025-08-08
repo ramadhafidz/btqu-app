@@ -22,7 +22,7 @@ class PromotionApprovalController extends Controller
 
     // dd($proposals->toArray());
 
-    return Inertia::render('Admin/PromotionApprovals/Index', [
+    return Inertia::render('Admin/PromotionApprovals', [
       'proposals' => $proposals,
     ]);
   }

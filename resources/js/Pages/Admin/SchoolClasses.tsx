@@ -1,19 +1,22 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { FormEventHandler, useEffect, useState, useMemo } from 'react';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import DangerButton from '@/Components/DangerButton';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import axios from 'axios';
+import { useToast } from '@/hooks/useToast';
 import {
   PlusCircleIcon,
   PencilSquareIcon,
   TrashIcon,
   ChevronDownIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 interface SchoolClass {
@@ -40,8 +43,14 @@ export default function Index({ auth }: PageProps) {
   });
   const [processing, setProcessing] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
-
   const [openLevels, setOpenLevels] = useState<Record<number, boolean>>({});
+
+  // State untuk modal konfirmasi penghapusan
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<SchoolClass | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const toast = useToast();
 
   const fetchClasses = () => {
     axios
@@ -104,35 +113,56 @@ export default function Index({ auth }: PageProps) {
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
     setProcessing(true);
+    setErrors({});
     const url = isEditMode
       ? route('admin.api.school-classes.update', currentClass?.id)
       : route('admin.api.school-classes.store');
     const method = isEditMode ? 'put' : 'post';
 
     axios({ method, url, data: formData })
-      .then(() => {
+      .then((response) => {
         closeModal();
         fetchClasses();
+        toast.success(response.data.message);
       })
       .catch((error) => {
         if (error.response.status === 422) {
           setErrors(error.response.data.errors);
+        } else {
+          toast.error('Terjadi kesalahan saat menyimpan data.');
         }
       })
       .finally(() => setProcessing(false));
   };
 
   const deleteClass = (schoolClass: SchoolClass) => {
-    if (
-      !window.confirm(
-        `Yakin ingin menghapus kelas ${schoolClass.level} ${schoolClass.nama_kelas}?`
-      )
-    ) {
-      return;
-    }
+    setClassToDelete(schoolClass);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!classToDelete) return;
+
+    setIsDeleting(true);
     axios
-      .delete(route('admin.api.school-classes.destroy', schoolClass.id))
-      .then(() => fetchClasses());
+      .delete(route('admin.api.school-classes.destroy', classToDelete.id))
+      .then((response) => {
+        fetchClasses();
+        toast.success(response.data.message);
+        setIsDeleteModalOpen(false);
+        setClassToDelete(null);
+      })
+      .catch((error) => {
+        toast.error('Terjadi kesalahan saat menghapus data.');
+      })
+      .finally(() => {
+        setIsDeleting(false);
+      });
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setClassToDelete(null);
   };
 
   return (
@@ -235,12 +265,14 @@ export default function Index({ auth }: PageProps) {
                                 <button
                                   onClick={() => openEditModal(schoolClass)}
                                   className="font-medium text-indigo-600 hover:text-indigo-800 p-2"
+                                  title="Edit kelas"
                                 >
                                   <PencilSquareIcon className="w-5 h-5" />
                                 </button>
                                 <button
                                   onClick={() => deleteClass(schoolClass)}
                                   className="font-medium text-red-600 hover:text-red-800 p-2 ml-2"
+                                  title="Hapus kelas"
                                 >
                                   <TrashIcon className="w-5 h-5" />
                                 </button>
@@ -318,6 +350,69 @@ export default function Index({ auth }: PageProps) {
             </PrimaryButton>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal Konfirmasi Penghapusan */}
+      <Modal show={isDeleteModalOpen} onClose={closeDeleteModal}>
+        <div className="p-6">
+          <div className="flex items-center">
+            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <ExclamationTriangleIcon
+                className="h-6 w-6 text-red-600"
+                aria-hidden="true"
+              />
+            </div>
+            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 className="text-base font-semibold leading-6 text-gray-900">
+                Konfirmasi Penghapusan
+              </h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  Anda yakin ingin menghapus kelas{' '}
+                  <span className="font-semibold text-gray-900">
+                    {classToDelete?.level} {classToDelete?.nama_kelas}
+                  </span>
+                  ?
+                </p>
+                {classToDelete && classToDelete.students_count > 0 && (
+                  <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                    <div className="flex">
+                      <div className="ml-3">
+                        <p className="text-sm text-amber-800">
+                          <strong>Peringatan:</strong> Kelas ini memiliki{' '}
+                          <span className="font-semibold">
+                            {classToDelete.students_count} siswa
+                          </span>
+                          . Penghapusan kelas akan mempengaruhi data siswa yang
+                          terkait.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <p className="text-sm text-gray-500 mt-2">
+                  Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <DangerButton
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="w-full justify-center sm:ml-3 sm:w-auto"
+            >
+              {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+            </DangerButton>
+            <SecondaryButton
+              onClick={closeDeleteModal}
+              disabled={isDeleting}
+              className="mt-3 w-full justify-center sm:mt-0 sm:w-auto"
+            >
+              Batal
+            </SecondaryButton>
+          </div>
+        </div>
       </Modal>
     </AuthenticatedLayout>
   );
