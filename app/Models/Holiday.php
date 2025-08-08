@@ -9,8 +9,9 @@ class Holiday extends Model
 {
   protected $fillable = ['tanggal', 'keterangan'];
 
+  // Cast ke tipe date dengan format Y-m-d agar serialisasi JSON cocok untuk <input type="date">
   protected $casts = [
-    'tanggal' => 'datetime',
+    'tanggal' => 'date:Y-m-d',
   ];
 
   public function scopeInYear($query, $year = null)
@@ -26,6 +27,11 @@ class Holiday extends Model
 
   public function getFormattedDateAttribute()
   {
-    return $this->tanggal->locale('id')->translatedFormat('l, d F Y');
+    if (!$this->tanggal) {
+      return null;
+    }
+    $raw = $this->getAttribute('tanggal');
+    $date = $raw instanceof Carbon ? $raw : Carbon::parse($raw);
+    return $date->locale('id')->translatedFormat('l, d F Y');
   }
 }

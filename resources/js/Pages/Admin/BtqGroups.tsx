@@ -1,5 +1,3 @@
-// resources/js/Pages/Admin/BtqGroups.tsx
-
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { PageProps, Student, Teacher } from '@/types';

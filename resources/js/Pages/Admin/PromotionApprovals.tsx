@@ -38,7 +38,7 @@ export default function Index({
   auth,
   proposals,
 }: PageProps<{ proposals: Proposal[] }>) {
-  const { flash } = usePage().props;
+  const flash = (usePage().props as any).flash ?? {};
 
   const handleApprove = (proposal: Proposal) => {
     if (

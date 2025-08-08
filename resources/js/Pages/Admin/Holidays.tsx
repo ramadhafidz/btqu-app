@@ -238,9 +238,17 @@ export default function Holidays({
 
   const currentStatusBadge = getStatusBadge(statusFilter);
 
+  // Helper to format date as YYYY-MM-DD in local timezone (avoid toISOString UTC shift)
+  const formatLocalYMD = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
   // Calendar helper functions
   const getHolidaysForDate = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0];
+    const dateString = formatLocalYMD(date);
     // Use allHolidays if available, otherwise fallback to holidays.data
     const holidaysList = allHolidays || holidays.data || [];
     const holidaysForDate = holidaysList.filter(
@@ -269,7 +277,7 @@ export default function Holidays({
       if (holidaysOnDate.length > 0) {
         console.log(
           'Holiday found for date:',
-          date.toISOString().split('T')[0],
+          formatLocalYMD(date),
           holidaysOnDate
         );
       }
@@ -303,7 +311,7 @@ export default function Holidays({
       if (holidaysOnDate.length > 0) {
         console.log(
           'Adding holiday-tile-red class for date:',
-          date.toISOString().split('T')[0]
+          formatLocalYMD(date)
         );
       }
 
@@ -332,7 +340,7 @@ export default function Holidays({
       }
     } else {
       // No holiday - open add modal with date pre-filled
-      const dateString = date.toISOString().split('T')[0];
+      const dateString = formatLocalYMD(date);
       setFormData({ tanggal: dateString, keterangan: '' });
       setEditingHoliday(null);
       setIsModalOpen(true);

@@ -1,5 +1,3 @@
-// resources/js/Pages/Admin/GroupDetailDashboard.tsx
-
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { BtqGroup, PageProps } from '@/types';
