@@ -53,6 +53,26 @@ export interface BtqGroup {
   students: Student[];
 }
 
+export interface StudentPromotionReviewLogItem {
+  id: number;
+  student: { id: number; nama_lengkap: string } | null;
+  jilid: number | null;
+  decision: 'approved' | 'rejected' | string;
+  reviewed_at: string | null;
+  reviewer: { id: number; name: string } | null;
+  note: string | null;
+}
+
+export interface StudentPromotionReviewLogItem {
+  id: number;
+  student: { id: number; nama_lengkap: string } | null;
+  jilid: number | null;
+  decision: 'approved' | 'rejected' | string;
+  reviewed_at: string | null;
+  reviewer: { id: number; name: string } | null;
+  note: string | null;
+}
+
 export type PageProps<
   T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {

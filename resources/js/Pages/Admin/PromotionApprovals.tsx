@@ -1,7 +1,15 @@
+import React from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import { useToast } from '@/hooks/useToast';
 import { PageProps, StudentProgress } from '@/types';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
+import PrimaryButton from '@/Components/PrimaryButton';
+import DangerButton from '@/Components/DangerButton';
 
 // [BARU] Definisikan nama jilid agar bisa digunakan di sini
 const JILID_NAMES: { [key: number]: string } = {
@@ -38,34 +46,85 @@ export default function Index({
   auth,
   proposals,
 }: PageProps<{ proposals: Proposal[] }>) {
-  const flash = (usePage().props as any).flash ?? {};
+  const toast = useToast();
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [confirmAction, setConfirmAction] = React.useState<
+    'approve' | 'reject' | null
+  >(null);
+  const [selectedProposal, setSelectedProposal] =
+    React.useState<Proposal | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [note, setNote] = React.useState('');
+  const quillModules = React.useMemo(
+    () => ({
+      toolbar: [
+        ['bold', 'italic', 'strike'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+      ],
+    }),
+    []
+  );
+  const quillFormats = React.useMemo(
+    () => ['bold', 'italic', 'strike', 'list', 'bullet', 'link'],
+    []
+  );
+
+  // Removed old Markdown helpers now that we use a WYSIWYG editor
 
   const handleApprove = (proposal: Proposal) => {
-    if (
-      !window.confirm(
-        `Yakin ingin MENYETUJUI kenaikan jilid untuk siswa ${proposal.student.nama_lengkap}?`
-      )
-    )
-      return;
-    router.post(
-      route('admin.promotion-approvals.approve', proposal.id),
-      {},
-      { preserveScroll: true }
-    );
+    setSelectedProposal(proposal);
+    setConfirmAction('approve');
+    setConfirmOpen(true);
   };
 
   const handleReject = (proposal: Proposal) => {
-    if (
-      !window.confirm(
-        `Yakin ingin MENOLAK kenaikan jilid untuk siswa ${proposal.student.nama_lengkap}?`
-      )
-    )
-      return;
+    setSelectedProposal(proposal);
+    setConfirmAction('reject');
+    setConfirmOpen(true);
+  };
+
+  const onConfirm = () => {
+    if (!selectedProposal || !confirmAction) return;
+    setIsSubmitting(true);
+    const routeName =
+      confirmAction === 'approve'
+        ? route('admin.promotion-approvals.approve', selectedProposal.id)
+        : route('admin.promotion-approvals.reject', selectedProposal.id);
     router.post(
-      route('admin.promotion-approvals.reject', proposal.id),
-      {},
-      { preserveScroll: true }
+      routeName,
+      { note },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          if (confirmAction === 'approve') {
+            toast.success('Kenaikan jilid berhasil disetujui.');
+          } else {
+            toast.success('Pengajuan kenaikan jilid ditolak.');
+          }
+          setConfirmOpen(false);
+          setSelectedProposal(null);
+          setConfirmAction(null);
+          setNote('');
+        },
+        onError: () => {
+          if (confirmAction === 'approve') {
+            toast.error('Gagal menyetujui kenaikan jilid.');
+          } else {
+            toast.error('Gagal menolak pengajuan kenaikan.');
+          }
+        },
+        onFinish: () => setIsSubmitting(false),
+      }
     );
+  };
+
+  const onCloseConfirm = () => {
+    if (isSubmitting) return;
+    setConfirmOpen(false);
+    setSelectedProposal(null);
+    setConfirmAction(null);
+    setNote('');
   };
 
   return (
@@ -89,15 +148,6 @@ export default function Index({
               jilid oleh guru.
             </p>
           </div>
-
-          {flash.success && (
-            <div
-              className="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md"
-              role="alert"
-            >
-              <p>{flash.success}</p>
-            </div>
-          )}
 
           {/* [UBAH] Desain Ulang Tabel */}
           <div className="bg-white shadow-sm sm:rounded-lg overflow-hidden">
@@ -180,6 +230,90 @@ export default function Index({
           </div>
         </div>
       </div>
+      {/* Modal Konfirmasi Setujui/Tolak */}
+      <Modal show={confirmOpen} onClose={onCloseConfirm}>
+        <div className="p-6">
+          <div className="flex items-center">
+            <div
+              className={`mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10 ${confirmAction === 'approve' ? 'bg-green-100' : 'bg-red-100'}`}
+            >
+              {confirmAction === 'approve' ? (
+                <CheckCircleIcon
+                  className="h-6 w-6 text-green-600"
+                  aria-hidden="true"
+                />
+              ) : (
+                <XCircleIcon
+                  className="h-6 w-6 text-red-600"
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 className="text-base font-semibold leading-6 text-gray-900">
+                {confirmAction === 'approve'
+                  ? 'Konfirmasi Persetujuan'
+                  : 'Konfirmasi Penolakan'}
+              </h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  {confirmAction === 'approve'
+                    ? 'Anda yakin ingin MENYETUJUI kenaikan jilid untuk siswa '
+                    : 'Anda yakin ingin MENOLAK kenaikan jilid untuk siswa '}
+                  <span className="font-semibold text-gray-900">
+                    {selectedProposal?.student.nama_lengkap}
+                  </span>
+                  ?
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-5 sm:mt-4 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Catatan Koordinator (opsional)
+              </label>
+              <div className="mt-2">
+                <ReactQuill
+                  theme="snow"
+                  value={note}
+                  onChange={setNote}
+                  modules={quillModules}
+                  formats={quillFormats}
+                  placeholder="Tulis catatan untuk guru..."
+                  className="bg-white"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row-reverse sm:gap-3">
+              {confirmAction === 'reject' ? (
+                <DangerButton
+                  onClick={onConfirm}
+                  disabled={isSubmitting}
+                  className="w-full justify-center sm:w-auto"
+                >
+                  {isSubmitting ? 'Memproses...' : 'Ya, Tolak'}
+                </DangerButton>
+              ) : (
+                <PrimaryButton
+                  onClick={onConfirm}
+                  disabled={isSubmitting}
+                  className="w-full justify-center sm:w-auto"
+                >
+                  {isSubmitting ? 'Memproses...' : 'Ya, Setujui'}
+                </PrimaryButton>
+              )}
+              <SecondaryButton
+                onClick={onCloseConfirm}
+                disabled={isSubmitting}
+                className="w-full justify-center sm:w-auto"
+              >
+                Batal
+              </SecondaryButton>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </AuthenticatedLayout>
   );
 }

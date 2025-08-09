@@ -133,11 +133,7 @@ export default function MyGroup({
   }, [selectedJuz]);
 
   const refreshPageData = () => {
-    router.reload({
-      only: ['btqGroup'],
-      preserveState: true,
-      preserveScroll: true,
-    });
+    router.reload({ only: ['btqGroup'] });
   };
 
   const openHafalanModal = (student: StudentWithProgress) => {
@@ -267,9 +263,17 @@ export default function MyGroup({
   return (
     <AuthenticatedLayout
       header={
-        <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-          Grup Saya
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+            Grup Saya
+          </h2>
+          <a
+            href={route('teacher.coordinator-notes.index')}
+            className="text-sm text-indigo-600 hover:text-indigo-800"
+          >
+            Lihat Catatan Koordinator →
+          </a>
+        </div>
       }
     >
       <Head title="Grup Saya" />
@@ -373,6 +377,7 @@ export default function MyGroup({
                                   isSaving
                                 }
                                 className="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                title="Kurangi halaman"
                               >
                                 <MinusIcon className="w-5 h-5" />
                               </button>
@@ -390,6 +395,7 @@ export default function MyGroup({
                                   isSaving
                                 }
                                 className="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                title="Tambah halaman"
                               >
                                 <PlusIcon className="w-5 h-5" />
                               </button>

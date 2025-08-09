@@ -9,10 +9,13 @@ import Modal from '@/Components/Modal';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 import DangerButton from '@/Components/DangerButton';
+import TextInput from '@/Components/TextInput';
+import { useToast } from '@/hooks/useToast';
 import {
   TrashIcon,
   PlusCircleIcon,
   ChevronUpDownIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import Downshift from 'downshift';
 
@@ -44,6 +47,12 @@ export default function Index({ auth }: PageProps) {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [filterLevel, setFilterLevel] = useState<string>('');
   const [allTeachers, setAllTeachers] = useState<Teacher[]>([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState<BtqGroup | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [studentSearch, setStudentSearch] = useState('');
+
+  const toast = useToast();
 
   const groupedByLevel = useMemo(() => {
     return groups.reduce(
@@ -106,9 +115,15 @@ export default function Index({ auth }: PageProps) {
       .then(() => {
         closeModal();
         refreshGroups(filterLevel);
+        const lvl = groupFormData.level ? ` Level ${groupFormData.level}` : '';
+        toast.success(`Grup BTQ${lvl} berhasil dibuat.`);
       })
       .catch((err) => {
-        if (err.response.status === 422) setErrors(err.response.data.errors);
+        if (err.response?.status === 422) {
+          setErrors(err.response.data.errors);
+        } else {
+          toast.error('Terjadi kesalahan saat membuat grup.');
+        }
       })
       .finally(() => setProcessing(false));
   };
@@ -124,9 +139,18 @@ export default function Index({ auth }: PageProps) {
       .then(() => {
         closeModal();
         refreshGroups(filterLevel);
+        toast.success(
+          teacherFormData.teacher_id
+            ? 'Guru berhasil diatur untuk grup.'
+            : 'Guru berhasil dilepas dari grup.'
+        );
       })
       .catch((err) => {
-        if (err.response.status === 422) setErrors(err.response.data.errors);
+        if (err.response?.status === 422) {
+          setErrors(err.response.data.errors);
+        } else {
+          toast.error('Terjadi kesalahan saat menyimpan pengaturan guru.');
+        }
       })
       .finally(() => setProcessing(false));
   };
@@ -159,7 +183,11 @@ export default function Index({ auth }: PageProps) {
       .post(route('admin.api.btq-groups.add-student', currentGroup?.id), {
         student_id: studentId,
       })
-      .then(() => refreshStudentAndGroupLists());
+      .then(() => {
+        refreshStudentAndGroupLists();
+        toast.success('Siswa berhasil ditambahkan ke grup.');
+      })
+      .catch(() => toast.error('Gagal menambahkan siswa ke grup.'));
   };
 
   const removeStudentFromGroup = (studentId: number) => {
@@ -167,7 +195,11 @@ export default function Index({ auth }: PageProps) {
       .post(route('admin.api.btq-groups.remove-student', currentGroup?.id), {
         student_id: studentId,
       })
-      .then(() => refreshStudentAndGroupLists());
+      .then(() => {
+        refreshStudentAndGroupLists();
+        toast.success('Siswa berhasil dikeluarkan dari grup.');
+      })
+      .catch(() => toast.error('Gagal mengeluarkan siswa dari grup.'));
   };
 
   const getGroupName = (group: BtqGroup | null) => {
@@ -177,20 +209,58 @@ export default function Index({ auth }: PageProps) {
       : `Grup Level ${group.level}`;
   };
 
-  const deleteGroup = (group: BtqGroup) => {
-    if (
-      !window.confirm(
-        `Yakin ingin menghapus ${getGroupName(
-          group
-        )}? Semua siswa di dalamnya akan dikeluarkan dari grup.`
-      )
-    ) {
-      return;
-    }
-    axios
-      .delete(route('admin.api.btq-groups.destroy', group.id))
-      .then(() => refreshGroups(filterLevel));
+  const openDeleteGroup = (group: BtqGroup) => {
+    setGroupToDelete(group);
+    setIsDeleteModalOpen(true);
   };
+
+  const confirmDelete = () => {
+    if (!groupToDelete) return;
+    setIsDeleting(true);
+    axios
+      .delete(route('admin.api.btq-groups.destroy', groupToDelete.id))
+      .then(() => {
+        setIsDeleteModalOpen(false);
+        setGroupToDelete(null);
+        refreshGroups(filterLevel);
+        toast.success('Grup berhasil dihapus.');
+      })
+      .catch(() => {
+        toast.error('Terjadi kesalahan saat menghapus grup.');
+      })
+      .finally(() => setIsDeleting(false));
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setGroupToDelete(null);
+  };
+
+  const isSearchActive = studentSearch.trim().length > 0;
+  const filteredCurrentMembers = useMemo(() => {
+    const q = studentSearch.trim().toLowerCase();
+    const items = currentGroup?.students ?? [];
+    if (!q) return items;
+    return items.filter(
+      (s) =>
+        (s.nama_lengkap?.toLowerCase() || '').includes(q) ||
+        String((s as any).nisn ?? '')
+          .toLowerCase()
+          .includes(q)
+    );
+  }, [currentGroup, studentSearch]);
+
+  const filteredUnassigned = useMemo(() => {
+    const q = studentSearch.trim().toLowerCase();
+    if (!q) return unassignedStudents;
+    return unassignedStudents.filter(
+      (s) =>
+        (s.nama_lengkap?.toLowerCase() || '').includes(q) ||
+        String((s as any).nisn ?? '')
+          .toLowerCase()
+          .includes(q)
+    );
+  }, [unassignedStudents, studentSearch]);
 
   return (
     <AuthenticatedLayout
@@ -266,7 +336,7 @@ export default function Index({ auth }: PageProps) {
                                 </p>
                               </div>
                               <button
-                                onClick={() => deleteGroup(group)}
+                                onClick={() => openDeleteGroup(group)}
                                 className="text-gray-400 hover:text-red-500"
                                 title="Hapus Grup"
                                 aria-label="Hapus Grup"
@@ -515,14 +585,32 @@ export default function Index({ auth }: PageProps) {
           <h2 className="text-lg font-medium text-gray-900 border-b pb-2">
             Atur Siswa untuk {getGroupName(currentGroup)}
           </h2>
+          <div className="mt-4 relative">
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+              </div>
+              <TextInput
+                type="text"
+                placeholder="Cari siswa (nama atau NISN)..."
+                className="w-full pl-10"
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+              />
+            </div>
+          </div>
           <div className="mt-4 grid grid-cols-2 gap-6">
             <div>
               <h3 className="font-bold text-gray-800">
-                Anggota Saat Ini ({currentGroup?.students.length})
+                Anggota Saat Ini ({filteredCurrentMembers.length}
+                {isSearchActive && currentGroup
+                  ? `/ ${currentGroup.students.length}`
+                  : ''}
+                )
               </h3>
               <div className="mt-2 border rounded-md p-2 min-h-[10rem] max-h-96 overflow-y-auto">
                 <ul className="space-y-2">
-                  {currentGroup?.students.map((student) => (
+                  {filteredCurrentMembers.map((student) => (
                     <li
                       key={student.id}
                       className="flex justify-between items-center p-2 rounded hover:bg-gray-100"
@@ -535,10 +623,12 @@ export default function Index({ auth }: PageProps) {
                       </DangerButton>
                     </li>
                   ))}
-                  {currentGroup?.students.length === 0 && (
+                  {filteredCurrentMembers.length === 0 && (
                     <li>
                       <p className="italic text-gray-500 p-2">
-                        Tidak ada anggota.
+                        {isSearchActive
+                          ? 'Tidak ada hasil.'
+                          : 'Tidak ada anggota.'}
                       </p>
                     </li>
                   )}
@@ -547,11 +637,12 @@ export default function Index({ auth }: PageProps) {
             </div>
             <div>
               <h3 className="font-bold text-gray-800">
-                Siswa Tersedia ({unassignedStudents.length})
+                Siswa Tersedia ({filteredUnassigned.length}
+                {isSearchActive ? `/ ${unassignedStudents.length}` : ''})
               </h3>
               <div className="mt-2 border rounded-md p-2 min-h-[10rem] max-h-96 overflow-y-auto">
                 <ul className="mt-2 space-y-2">
-                  {unassignedStudents.map((student) => (
+                  {filteredUnassigned.map((student) => (
                     <li
                       key={student.id}
                       className="flex justify-between items-center p-2 rounded hover:bg-gray-100"
@@ -564,10 +655,12 @@ export default function Index({ auth }: PageProps) {
                       </PrimaryButton>
                     </li>
                   ))}
-                  {unassignedStudents.length === 0 && (
+                  {filteredUnassigned.length === 0 && (
                     <li>
                       <p className="italic text-gray-500 p-2">
-                        Tidak ada siswa tersedia.
+                        {isSearchActive
+                          ? 'Tidak ada hasil.'
+                          : 'Tidak ada siswa tersedia.'}
                       </p>
                     </li>
                   )}
@@ -577,6 +670,61 @@ export default function Index({ auth }: PageProps) {
           </div>
           <div className="mt-6 flex justify-end">
             <SecondaryButton onClick={closeModal}>Tutup</SecondaryButton>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal Konfirmasi Penghapusan Grup */}
+      <Modal show={isDeleteModalOpen} onClose={closeDeleteModal}>
+        <div className="p-6">
+          <div className="flex items-center">
+            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <TrashIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+            </div>
+            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 className="text-base font-semibold leading-6 text-gray-900">
+                Konfirmasi Penghapusan Grup
+              </h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  Anda yakin ingin menghapus{' '}
+                  <span className="font-semibold text-gray-900">
+                    {getGroupName(groupToDelete)}
+                  </span>
+                  ?
+                </p>
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <div className="flex">
+                    <div className="ml-3">
+                      <p className="text-sm text-amber-800">
+                        <strong>Peringatan:</strong> Semua siswa di dalam grup
+                        ini akan dikeluarkan dari grup, dan penghapusan tidak
+                        dapat dibatalkan.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <DangerButton
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="w-full justify-center sm:ml-3 sm:w-auto"
+            >
+              {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+            </DangerButton>
+            <SecondaryButton
+              onClick={closeDeleteModal}
+              disabled={isDeleting}
+              className="mt-3 w-full justify-center sm:mt-0 sm:w-auto"
+            >
+              Batal
+            </SecondaryButton>
           </div>
         </div>
       </Modal>

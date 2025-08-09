@@ -32,12 +32,24 @@ class StudentController extends Controller
       ->when($request->input('class'), function ($query, $classId) {
         $query->where('school_class_id', $classId);
       })
+      ->when($request->input('level'), function ($query, $level) {
+        $query->whereHas('schoolClass', function ($q) use ($level) {
+          $q->where('level', $level);
+        });
+      })
       ->when($request->input('search'), function ($query, $search) {
         $query->where(function ($subQuery) use ($search) {
           $subQuery
             ->where('nama_lengkap', 'like', "%{$search}%")
             ->orWhere('nisn', 'like', "%{$search}%");
         });
+      })
+      ->when($request->input('sort'), function ($query, $sort) use ($request) {
+        $allowed = ['nama_lengkap', 'nisn'];
+        $direction = strtolower($request->input('order', 'asc')) === 'desc' ? 'desc' : 'asc';
+        if (in_array($sort, $allowed, true)) {
+          $query->orderBy($sort, $direction);
+        }
       })
       ->get();
 

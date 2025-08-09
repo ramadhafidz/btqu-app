@@ -12,6 +12,7 @@ use App\Http\Controllers\Teacher\{
   MyGroupController,
   ProgressController,
   PromotionController,
+  CoordinatorNotesController,
 };
 use App\Http\Controllers\{
   DataController,
@@ -190,6 +191,9 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
     ->group(function () {
       Route::get('/my-group', [MyGroupController::class, 'index'])->name(
         'my-group.index',
+      );
+      Route::get('/coordinator-notes', [CoordinatorNotesController::class, 'index'])->name(
+        'coordinator-notes.index'
       );
       Route::patch('/progress/{progress}', [
         ProgressController::class,

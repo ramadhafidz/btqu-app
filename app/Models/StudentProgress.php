@@ -18,8 +18,15 @@ class StudentProgress extends Model
     'hafalan_ayat',
   ];
 
+  protected $casts = [];
+
   public function student()
   {
     return $this->belongsTo(Student::class);
+  }
+
+  public function reviewLogs()
+  {
+    return $this->hasMany(StudentPromotionReviewLog::class, 'student_progress_id');
   }
 }

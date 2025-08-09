@@ -14,7 +14,11 @@ import {
   PencilSquareIcon,
   TrashIcon,
   MagnifyingGlassIcon,
+  FunnelIcon,
 } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useToast } from '@/hooks/useToast';
+import DangerButton from '@/Components/DangerButton';
 
 const JILID_INFO: { [key: number]: { name: string; limit: number } } = {
   1: { name: 'Jilid 1', limit: 40 },
@@ -80,8 +84,24 @@ export default function Index({ auth }: PageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterClass, setFilterClass] = useState('');
   const [filterLevel, setFilterLevel] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [sortField, setSortField] = useState<'nama_lengkap' | 'nisn' | ''>('');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [availableClasses, setAvailableClasses] = useState<SchoolClass[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const toast = useToast();
+
+  // State untuk modal konfirmasi penghapusan
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Ada filter aktif jika ada kolom urut atau level/kelas terisi
+  const hasActiveFilter = useMemo(
+    () => Boolean(sortField || filterLevel || filterClass),
+    [sortField, filterLevel, filterClass]
+  );
 
   useEffect(() => {
     axios
@@ -91,28 +111,32 @@ export default function Index({ auth }: PageProps) {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
+      // Kirim filter level ke backend jika ada
+      const params = {
+        search: searchQuery,
+        class: filterClass,
+        level: filterLevel,
+        sort: sortField || undefined,
+        order: sortField ? sortDir : undefined,
+      };
       axios
-        .get(
-          route('admin.api.students.index', {
-            search: searchQuery,
-            class: filterClass,
-          })
-        )
+        .get(route('admin.api.students.index'), { params })
         .then((response) => setStudents(response.data));
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, filterClass, refreshKey]);
+  }, [searchQuery, filterClass, filterLevel, sortField, sortDir, refreshKey]);
 
   useEffect(() => {
     if (filterLevel) {
       setAvailableClasses(
         schoolClasses.filter((sc) => sc.level.toString() === filterLevel)
       );
+      // Jangan reset filterClass jika filterLevel berubah, kecuali filterLevel dikosongkan
     } else {
       setAvailableClasses([]);
+      setFilterClass('');
     }
-    setFilterClass('');
   }, [filterLevel, schoolClasses]);
 
   const [selectedLevel, setSelectedLevel] = useState<string>('');
@@ -171,6 +195,15 @@ export default function Index({ auth }: PageProps) {
     setIsModalOpen(true);
   };
 
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterLevel('');
+    setFilterClass('');
+    setSortField('');
+    setSortDir('asc');
+    setAvailableClasses([]);
+  };
+
   const openEditModal = (student: Student) => {
     setIsEditMode(true);
     setCurrentStudent(student);
@@ -193,32 +226,61 @@ export default function Index({ auth }: PageProps) {
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
     setProcessing(true);
+    setErrors({});
     const url = isEditMode
       ? route('admin.api.students.update', currentStudent?.id)
       : route('admin.api.students.store');
     const method = isEditMode ? 'put' : 'post';
     axios({ method, url, data: formData })
-      .then(() => {
+      .then((response) => {
         closeModal();
         setRefreshKey((oldKey) => oldKey + 1);
+        // Tampilkan notistack sukses
+        if (response.data && response.data.message) {
+          toast.success(response.data.message);
+        } else {
+          toast.success(
+            isEditMode
+              ? 'Siswa berhasil diperbarui.'
+              : 'Siswa baru berhasil ditambahkan.'
+          );
+        }
       })
       .catch((error) => {
         if (error.response?.status === 422) {
           setErrors(error.response.data.errors);
+        } else {
+          toast.error('Terjadi kesalahan saat menyimpan data.');
         }
       })
       .finally(() => setProcessing(false));
   };
 
   const deleteStudent = (student: Student) => {
-    if (
-      !window.confirm(`Yakin ingin menghapus siswa ${student.nama_lengkap}?`)
-    ) {
-      return;
-    }
-    axios.delete(route('admin.api.students.destroy', student.id)).then(() => {
-      setRefreshKey((oldKey) => oldKey + 1);
-    });
+    setStudentToDelete(student);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!studentToDelete) return;
+    setIsDeleting(true);
+    axios
+      .delete(route('admin.api.students.destroy', studentToDelete.id))
+      .then(() => {
+        setIsDeleteModalOpen(false);
+        setStudentToDelete(null);
+        setRefreshKey((oldKey) => oldKey + 1);
+        toast.success('Siswa berhasil dihapus.');
+      })
+      .catch(() => {
+        toast.error('Terjadi kesalahan saat menghapus siswa.');
+      })
+      .finally(() => setIsDeleting(false));
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setStudentToDelete(null);
   };
 
   return (
@@ -249,8 +311,8 @@ export default function Index({ auth }: PageProps) {
             </PrimaryButton>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="relative md:col-span-2">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+            <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
               </div>
@@ -262,37 +324,124 @@ export default function Index({ auth }: PageProps) {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-
-            <div className="flex gap-2">
-              <select
-                value={filterLevel}
-                onChange={(e) => setFilterLevel(e.target.value)}
-                className="w-1/2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                aria-label="Filter berdasarkan level"
+            <div className="flex justify-end items-center gap-2 md:shrink-0">
+              {!isFilterOpen && hasActiveFilter && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
+                  title="Clear filter"
+                  aria-label="Clear filter"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                  Clear filter
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsFilterOpen((v) => !v)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
               >
-                <option value="">Semua Level</option>
-                {uniqueLevels.map((level) => (
-                  <option key={level} value={level}>
-                    Level {level}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={filterClass}
-                onChange={(e) => setFilterClass(e.target.value)}
-                disabled={!filterLevel}
-                className="w-1/2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm disabled:bg-gray-200"
-                aria-label="Filter berdasarkan kelas"
-              >
-                <option value="">Semua Kelas</option>
-                {availableClasses.map((sc) => (
-                  <option key={sc.id} value={sc.id}>
-                    {sc.nama_kelas}
-                  </option>
-                ))}
-              </select>
+                <FunnelIcon className="w-5 h-5" />
+                Filter
+              </button>
             </div>
           </div>
+
+          {isFilterOpen && (
+            <div className="mb-6 bg-white shadow-sm sm:rounded-lg border border-gray-200">
+              <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <InputLabel value="Urutkan" />
+                  <div className="flex gap-2 mt-1">
+                    <select
+                      value={sortField}
+                      onChange={(e) =>
+                        setSortField(
+                          e.target.value as 'nama_lengkap' | 'nisn' | ''
+                        )
+                      }
+                      className="w-1/2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                      aria-label="Pilih kolom urut"
+                    >
+                      <option value="">Pilih Kolom</option>
+                      <option value="nama_lengkap">Nama</option>
+                      <option value="nisn">NISN</option>
+                    </select>
+                    <select
+                      value={sortDir}
+                      onChange={(e) =>
+                        setSortDir(e.target.value as 'asc' | 'desc')
+                      }
+                      disabled={!sortField}
+                      className="w-1/2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm disabled:bg-gray-200"
+                      aria-label="Pilih arah urut"
+                      title={
+                        !sortField
+                          ? 'Pilih kolom urut terlebih dahulu'
+                          : undefined
+                      }
+                    >
+                      <option value="asc">Naik</option>
+                      <option value="desc">Turun</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <InputLabel value="Level" />
+                  <select
+                    value={filterLevel}
+                    onChange={(e) => setFilterLevel(e.target.value)}
+                    className="mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                    aria-label="Filter berdasarkan level"
+                  >
+                    <option value="">Semua Level</option>
+                    {uniqueLevels.map((level) => (
+                      <option key={level} value={level}>
+                        Level {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <InputLabel value="Kelas" />
+                  <select
+                    value={filterClass}
+                    onChange={(e) => setFilterClass(e.target.value)}
+                    disabled={!filterLevel}
+                    className="mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm disabled:bg-gray-200"
+                    aria-label="Filter berdasarkan kelas"
+                  >
+                    <option value="">Semua Kelas</option>
+                    {availableClasses.map((sc) => (
+                      <option key={sc.id} value={sc.id}>
+                        {sc.nama_kelas}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="px-4 pb-4 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
+                  title="Clear filter"
+                  aria-label="Clear filter"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                  Clear filter
+                </button>
+                <div className="flex gap-2">
+                  <SecondaryButton onClick={() => setIsFilterOpen(false)}>
+                    Tutup
+                  </SecondaryButton>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="bg-white shadow-sm sm:rounded-lg overflow-hidden">
             <table className="w-full text-sm text-left text-gray-500">
@@ -514,6 +663,60 @@ export default function Index({ auth }: PageProps) {
             </PrimaryButton>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal Konfirmasi Penghapusan */}
+      <Modal show={isDeleteModalOpen} onClose={closeDeleteModal}>
+        <div className="p-6">
+          <div className="flex items-center">
+            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <TrashIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+            </div>
+            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 className="text-base font-semibold leading-6 text-gray-900">
+                Konfirmasi Penghapusan
+              </h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  Anda yakin ingin menghapus siswa{' '}
+                  <span className="font-semibold text-gray-900">
+                    {studentToDelete?.nama_lengkap}
+                  </span>
+                  ?
+                </p>
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <div className="flex">
+                    <div className="ml-3">
+                      <p className="text-sm text-amber-800">
+                        <strong>Peringatan:</strong> Penghapusan siswa akan
+                        menghapus seluruh data siswa ini secara permanen.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <DangerButton
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="w-full justify-center sm:ml-3 sm:w-auto"
+            >
+              {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+            </DangerButton>
+            <SecondaryButton
+              onClick={closeDeleteModal}
+              disabled={isDeleting}
+              className="mt-3 w-full justify-center sm:mt-0 sm:w-auto"
+            >
+              Batal
+            </SecondaryButton>
+          </div>
+        </div>
       </Modal>
     </AuthenticatedLayout>
   );
