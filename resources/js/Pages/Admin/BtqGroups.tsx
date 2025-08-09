@@ -265,9 +265,11 @@ export default function Index({ auth }: PageProps) {
   return (
     <AuthenticatedLayout
       header={
-        <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-          Manajemen Kelompok BTQ
-        </h2>
+        <div className="flex items-center justify-between min-h-[64px] px-0 sm:px-6 lg:px-8 py-4">
+          <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+            Manajemen Kelompok BTQ
+          </h2>
+        </div>
       }
     >
       <Head title="Manajemen Kelompok BTQ" />
@@ -291,7 +293,7 @@ export default function Index({ auth }: PageProps) {
                 aria-label="Filter berdasarkan Level"
                 value={filterLevel}
                 onChange={(e) => setFilterLevel(e.target.value)}
-                className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                className="border-gray-300 focus:border-[#005929] focus:ring-[#005929] rounded-md shadow-sm"
               >
                 <option value="">Semua Level</option>
                 <option value="1">Level 1</option>
@@ -303,7 +305,7 @@ export default function Index({ auth }: PageProps) {
               </select>
               <PrimaryButton
                 onClick={openAddGroupModal}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 !bg-[#005929] hover:!bg-[#005929]/90 focus:!bg-[#005929] active:!bg-[#005929] focus:!ring-[#005929]"
               >
                 <PlusCircleIcon className="w-5 h-5" />
                 <span>Tambah Grup</span>
@@ -380,7 +382,7 @@ export default function Index({ auth }: PageProps) {
                                 <div
                                   key={student.id}
                                   title={student.nama_lengkap}
-                                  className="w-8 h-8 rounded-full bg-blue-200 text-blue-800 border-2 border-white flex items-center justify-center text-xs font-bold"
+                                  className="w-8 h-8 rounded-full bg-[#826F4F]/10 text-[#826F4F] border-2 border-white flex items-center justify-center text-xs font-bold"
                                 >
                                   {student.nama_lengkap
                                     .split(' ')
@@ -404,7 +406,7 @@ export default function Index({ auth }: PageProps) {
                             </SecondaryButton>
                             <PrimaryButton
                               onClick={() => openManageStudentModal(group)}
-                              className="!text-xs !py-1.5 !px-3"
+                              className="!text-xs !py-1.5 !px-3 !bg-[#005929] hover:!bg-[#005929]/90 focus:!bg-[#005929] active:!bg-[#005929] focus:!ring-[#005929]"
                             >
                               Atur Siswa
                             </PrimaryButton>
@@ -443,7 +445,7 @@ export default function Index({ auth }: PageProps) {
               value={groupFormData.level}
               required
               onChange={(e) => setGroupFormData({ level: e.target.value })}
-              className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+              className="mt-1 block w-full border-gray-300 focus:border-[#005929] focus:ring-[#005929] rounded-md shadow-sm"
             >
               <option value="">Pilih Level</option>
               <option value="1">Level 1</option>
@@ -457,7 +459,10 @@ export default function Index({ auth }: PageProps) {
           </div>
           <div className="mt-6 flex justify-end">
             <SecondaryButton onClick={closeModal}>Batal</SecondaryButton>
-            <PrimaryButton className="ms-3" disabled={processing}>
+            <PrimaryButton
+              className="ms-3 !bg-[#005929] hover:!bg-[#005929]/90 focus:!bg-[#005929] active:!bg-[#005929] focus:!ring-[#005929]"
+              disabled={processing}
+            >
               Buat Grup
             </PrimaryButton>
           </div>
@@ -540,7 +545,7 @@ export default function Index({ auth }: PageProps) {
                             <li
                               className={cx(
                                 'cursor-pointer select-none relative py-2 px-3',
-                                highlightedIndex === index && 'bg-indigo-100',
+                                highlightedIndex === index && 'bg-[#005929]/10',
                                 selectedItem?.id_pegawai === item.id_pegawai &&
                                   'font-semibold'
                               )}
@@ -572,7 +577,10 @@ export default function Index({ auth }: PageProps) {
               <SecondaryButton type="button" onClick={closeModal}>
                 Batal
               </SecondaryButton>
-              <PrimaryButton className="ms-3" disabled={processing}>
+              <PrimaryButton
+                className="ms-3 !bg-[#005929] hover:!bg-[#005929]/90 focus:!bg-[#005929] active:!bg-[#005929] focus:!ring-[#005929]"
+                disabled={processing}
+              >
                 Simpan
               </PrimaryButton>
             </div>
@@ -650,6 +658,7 @@ export default function Index({ auth }: PageProps) {
                       <span>{student.nama_lengkap}</span>
                       <PrimaryButton
                         onClick={() => addStudentToGroup(student.id)}
+                        className="!bg-[#005929] hover:!bg-[#005929]/90 focus:!bg-[#005929] active:!bg-[#005929] focus:!ring-[#005929]"
                       >
                         + Tambah
                       </PrimaryButton>

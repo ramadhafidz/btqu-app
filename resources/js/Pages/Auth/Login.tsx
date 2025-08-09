@@ -45,7 +45,7 @@ export default function Login({
             type="email"
             name="email"
             value={data.email}
-            className="mt-1 block w-full"
+            className="mt-1 block w-full focus:border-[#005929] focus:ring-[#005929]"
             autoComplete="username"
             isFocused={true}
             onChange={(e) => setData('email', e.target.value)}
@@ -62,7 +62,7 @@ export default function Login({
             type="password"
             name="password"
             value={data.password}
-            className="mt-1 block w-full"
+            className="mt-1 block w-full focus:border-[#005929] focus:ring-[#005929]"
             autoComplete="current-password"
             onChange={(e) => setData('password', e.target.value)}
           />
@@ -93,7 +93,10 @@ export default function Login({
             </Link>
           )}
 
-          <PrimaryButton className="ms-4" disabled={processing}>
+          <PrimaryButton
+            className="ms-4 !bg-[#005929] hover:!bg-[#005929]/90 focus:!bg-[#005929] active:!bg-[#005929] focus:!ring-[#005929]"
+            disabled={processing}
+          >
             Log in
           </PrimaryButton>
         </div>

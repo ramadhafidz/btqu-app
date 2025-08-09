@@ -286,9 +286,11 @@ export default function Index({ auth }: PageProps) {
   return (
     <AuthenticatedLayout
       header={
-        <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-          Manajemen Siswa
-        </h2>
+        <div className="flex items-center justify-between min-h-[64px] px-0 sm:px-6 lg:px-8 py-4">
+          <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+            Manajemen Siswa
+          </h2>
+        </div>
       }
     >
       <Head title="Manajemen Siswa" />
@@ -304,7 +306,7 @@ export default function Index({ auth }: PageProps) {
             </div>
             <PrimaryButton
               onClick={openAddModal}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 !bg-[#005929] hover:!bg-[#005929]/90 focus:!bg-[#005929] active:!bg-[#005929] focus:!ring-[#005929]"
             >
               <PlusCircleIcon className="w-5 h-5" />
               <span>Tambah Siswa</span>
@@ -480,7 +482,7 @@ export default function Index({ auth }: PageProps) {
                     </td>
                     <td className="px-6 py-4">
                       {student.btq_group ? (
-                        <span className="bg-indigo-100 text-indigo-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">
+                        <span className="bg-[#005929]/10 text-[#005929] text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">
                           {student.btq_group.teacher
                             ? `Grup ${student.btq_group.teacher.user.name}`
                             : `Grup ID: ${student.btq_group.id}`}
@@ -494,7 +496,7 @@ export default function Index({ auth }: PageProps) {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => openEditModal(student)}
-                        className="font-medium text-indigo-600 hover:text-indigo-800 p-2"
+                        className="font-medium text-[#005929] hover:text-[#826F4F] p-2"
                         title="Edit siswa"
                       >
                         <PencilSquareIcon className="w-5 h-5" />

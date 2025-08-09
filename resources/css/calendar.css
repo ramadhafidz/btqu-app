@@ -1,3 +1,9 @@
+/* Custom today tile color for Holidays.tsx */
+.calendar-tile-today-custom {
+  background: #826f4f !important;
+  color: #fff !important;
+  font-weight: bold;
+}
 /* Custom Calendar Styles */
 .react-calendar {
   width: 100% !important;
@@ -8,19 +14,23 @@
   font-family: inherit;
   line-height: 1.125em;
   height: 600px !important;
+  overflow: visible !important; /* allow tooltips to overflow */
 }
 
 .calendar-container {
   min-height: 600px;
+  overflow: visible !important; /* allow tooltips to overflow */
 }
 
 .react-calendar__viewContainer {
   flex: 1;
   height: 100%;
+  overflow: visible !important;
 }
 
 .react-calendar__month-view {
   height: 100%;
+  overflow: visible !important;
 }
 
 .react-calendar__month-view__days {
@@ -29,11 +39,13 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
   height: calc(100% - 100px) !important;
+  overflow: visible !important;
 }
 
 .react-calendar__month-view__days__day {
   height: 80px !important;
   min-height: 80px !important;
+  overflow: visible !important;
 }
 
 .react-calendar__tile {
@@ -53,6 +65,8 @@
   justify-content: flex-start;
   border: 1px solid #e5e7eb;
   margin: 1px;
+  overflow: visible !important; /* ensure tooltip isn't clipped by tile */
+  z-index: 1; /* base stacking; tooltip uses higher z-index */
 }
 
 .react-calendar--doubleView {

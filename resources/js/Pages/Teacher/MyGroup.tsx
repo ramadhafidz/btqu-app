@@ -8,12 +8,18 @@ import {
   Juz,
   Surah,
 } from '@/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import DangerButton from '@/Components/DangerButton';
 import { Dialog } from '@headlessui/react';
-import { PlusIcon, MinusIcon } from '@heroicons/react/24/solid';
+import {
+  PlusIcon,
+  MinusIcon,
+  ExclamationTriangleIcon,
+  ArrowTopRightOnSquareIcon,
+} from '@heroicons/react/24/solid';
 
 const JILID_NAMES: { [key: number]: string } = {
   1: 'Jilid 1',
@@ -47,9 +53,9 @@ const JILID_LIMITS: { [key: number]: number } = {
 const getStatusBadgeClass = (status: string) => {
   switch (status.toLowerCase()) {
     case 'lulus':
-      return 'bg-green-100 text-green-800';
+      return 'bg-[#005929]/10 text-[#005929]';
     case 'diajukan':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-[#826F4F]/10 text-[#826F4F]';
     case 'proses':
     default:
       return 'bg-yellow-100 text-yellow-800';
@@ -64,6 +70,9 @@ export default function MyGroup({
   const [juzs, setJuzs] = useState<Juz[]>([]);
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [selectedJuz, setSelectedJuz] = useState('');
+  const [hafalanJuzIds, setHafalanJuzIds] = useState<{ [key: number]: string }>(
+    {}
+  );
   const [hafalanSurahIds, setHafalanSurahIds] = useState<{
     [key: number]: string;
   }>({});
@@ -77,11 +86,20 @@ export default function MyGroup({
     [key: number]: number;
   }>({});
   const [localHafalanChanges, setLocalHafalanChanges] = useState<{
-    [key: number]: { surahId: number | null; ayat: string | null };
+    [key: number]: {
+      juzId: number | null;
+      surahId: number | null;
+      ayat: string | null;
+    };
   }>({});
   const [savingState, setSavingState] = useState<{ [key: number]: boolean }>(
     {}
   );
+  const [isBulkSaving, setIsBulkSaving] = useState(false);
+  // Guard navigation when there are unsaved changes
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+  const allowNavigateRef = useRef(false);
 
   useEffect(() => {
     setBtqGroup(initialGroup);
@@ -98,6 +116,7 @@ export default function MyGroup({
         (acc, student) => {
           if (student.progress) {
             acc[student.id] = {
+              juzId: (student.progress as any)?.hafalan_juz_id ?? null,
               surahId: student.progress.hafalan_surah_id,
               ayat: student.progress.hafalan_ayat,
             };
@@ -106,6 +125,7 @@ export default function MyGroup({
         },
         {} as {
           [key: number]: {
+            juzId: number | null;
             surahId: number | null;
             ayat: string | null;
           };
@@ -138,10 +158,15 @@ export default function MyGroup({
 
   const openHafalanModal = (student: StudentWithProgress) => {
     const localHafalan = localHafalanChanges[student.id] ?? {
+      juzId: (student.progress as any)?.hafalan_juz_id,
       surahId: student.progress?.hafalan_surah_id,
       ayat: student.progress?.hafalan_ayat,
     };
 
+    setHafalanJuzIds((prev) => ({
+      ...prev,
+      [student.id]: localHafalan.juzId?.toString() ?? '',
+    }));
     setHafalanSurahIds((prev) => ({
       ...prev,
       [student.id]: localHafalan.surahId?.toString() ?? '',
@@ -169,6 +194,7 @@ export default function MyGroup({
 
     const payload: {
       pages_to_add?: number;
+      hafalan_juz_id?: number | null;
       hafalan_surah_id?: number | null;
       hafalan_ayat?: string | null;
     } = {};
@@ -180,15 +206,18 @@ export default function MyGroup({
     }
 
     const initialHafalan = {
+      juzId: (student.progress as any)?.hafalan_juz_id ?? null,
       surahId: student.progress.hafalan_surah_id,
       ayat: student.progress.hafalan_ayat,
     };
     const newHafalan = localHafalanChanges[studentId];
     if (
       newHafalan &&
-      (newHafalan.surahId !== initialHafalan.surahId ||
+      (newHafalan.juzId !== initialHafalan.juzId ||
+        newHafalan.surahId !== initialHafalan.surahId ||
         newHafalan.ayat !== initialHafalan.ayat)
     ) {
+      payload.hafalan_juz_id = newHafalan.juzId;
       payload.hafalan_surah_id = newHafalan.surahId;
       payload.hafalan_ayat = newHafalan.ayat;
     }
@@ -210,11 +239,122 @@ export default function MyGroup({
     setLocalHafalanChanges((prev) => ({
       ...prev,
       [editHafalanStudentId]: {
+        juzId: Number(hafalanJuzIds[editHafalanStudentId]) || null,
         surahId: Number(hafalanSurahIds[editHafalanStudentId]) || null,
         ayat: hafalanAyats[editHafalanStudentId] || null,
       },
     }));
     setEditHafalanStudentId(null);
+  };
+
+  // Apakah ada perubahan pada salah satu siswa?
+  const hasAnyChanges = useMemo(() => {
+    if (!btqGroup) return false;
+    return btqGroup.students.some((student) => {
+      const initialHalaman = student.progress?.halaman ?? 0;
+      const localHalaman = localPageChanges[student.id] ?? initialHalaman;
+      if (localHalaman !== initialHalaman) return true;
+
+      const currentJuz = (student.progress as any)?.hafalan_juz_id ?? null;
+      const currentSurah = student.progress?.hafalan_surah_id ?? null;
+      const currentAyat = student.progress?.hafalan_ayat ?? null;
+      const local = localHafalanChanges[student.id];
+      const localJuz = local?.juzId ?? currentJuz;
+      const localSurah = local?.surahId ?? currentSurah;
+      const localAyat = local?.ayat ?? currentAyat;
+      return (
+        localJuz !== currentJuz ||
+        localSurah !== currentSurah ||
+        localAyat !== currentAyat
+      );
+    });
+  }, [btqGroup, localPageChanges, localHafalanChanges]);
+
+  // Warn on browser/tab close or refresh when there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasAnyChanges) {
+        e.preventDefault();
+        // Chrome requires returnValue to be set
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasAnyChanges]);
+
+  // Intercept Inertia navigations to show a confirm modal if there are unsaved changes
+  useEffect(() => {
+    const handler = (event: any) => {
+      if (isBulkSaving) return; // allow internal reloads during save
+      if (hasAnyChanges && !allowNavigateRef.current) {
+        event.preventDefault?.();
+        const href = event?.detail?.visit?.url?.href as string | undefined;
+        if (href) setPendingUrl(href);
+        setShowLeaveConfirm(true);
+      }
+    };
+    window.addEventListener('inertia:before', handler as EventListener);
+    return () =>
+      window.removeEventListener('inertia:before', handler as EventListener);
+  }, [hasAnyChanges, isBulkSaving]);
+
+  // Simpan semua perubahan sekaligus
+  const handleBulkSave = async () => {
+    if (!btqGroup || !hasAnyChanges) return;
+    setIsBulkSaving(true);
+    try {
+      const requests: Promise<any>[] = [];
+      for (const student of btqGroup.students) {
+        const progress = student.progress;
+        if (!progress) continue;
+
+        const payload: {
+          pages_to_add?: number;
+          hafalan_juz_id?: number | null;
+          hafalan_surah_id?: number | null;
+          hafalan_ayat?: string | null;
+        } = {};
+
+        // Halaman
+        const initialPage = progress.halaman;
+        const localHalaman = localPageChanges[student.id] ?? initialPage;
+        if (localHalaman !== initialPage) {
+          payload.pages_to_add = localHalaman - initialPage;
+        }
+
+        // Hafalan
+        const currentJuz = (progress as any)?.hafalan_juz_id ?? null;
+        const currentSurah = progress.hafalan_surah_id;
+        const currentAyat = progress.hafalan_ayat;
+        const local = localHafalanChanges[student.id];
+        const nextJuz = local?.juzId ?? currentJuz;
+        const nextSurah = local?.surahId ?? currentSurah;
+        const nextAyat = local?.ayat ?? currentAyat;
+        if (
+          nextJuz !== currentJuz ||
+          nextSurah !== currentSurah ||
+          nextAyat !== currentAyat
+        ) {
+          payload.hafalan_juz_id = nextJuz ?? null;
+          payload.hafalan_surah_id = nextSurah ?? null;
+          payload.hafalan_ayat = nextAyat ?? null;
+        }
+
+        if (Object.keys(payload).length > 0) {
+          requests.push(
+            axios.patch(route('teacher.progress.update', progress.id), payload)
+          );
+        }
+      }
+
+      if (requests.length > 0) {
+        await Promise.allSettled(requests);
+        refreshPageData();
+      }
+    } finally {
+      setIsBulkSaving(false);
+    }
   };
 
   if (!btqGroup) {
@@ -269,9 +409,10 @@ export default function MyGroup({
           </h2>
           <a
             href={route('teacher.coordinator-notes.index')}
-            className="text-sm text-indigo-600 hover:text-indigo-800"
+            className="inline-flex items-center gap-2 rounded-md border border-[#005929]/30 px-3 py-1.5 text-sm font-medium text-[#005929] hover:bg-[#005929] hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#005929] transition"
           >
-            Lihat Catatan Koordinator →
+            <span>Lihat Catatan Koordinator</span>
+            <ArrowTopRightOnSquareIcon className="h-4 w-4" aria-hidden="true" />
           </a>
         </div>
       }
@@ -281,9 +422,18 @@ export default function MyGroup({
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div className="p-6 md:p-8">
-              <h3 className="text-xl font-bold mb-6 text-gray-800">
-                Anggota Grup {auth.user.name}
-              </h3>
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Anggota Grup {auth.user.name}
+                </h3>
+                <PrimaryButton
+                  onClick={handleBulkSave}
+                  disabled={!hasAnyChanges || isBulkSaving}
+                  className="!py-2 !px-4 !bg-[#005929] hover:!bg-[#005929]/90 focus:!ring-[#005929]"
+                >
+                  {isBulkSaving ? 'Menyimpan...' : 'Simpan'}
+                </PrimaryButton>
+              </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -318,12 +468,7 @@ export default function MyGroup({
                       >
                         Hafalan
                       </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Aksi
-                      </th>
+                      {/* Kolom Aksi dihapus */}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -335,23 +480,19 @@ export default function MyGroup({
                       const localHalaman =
                         localPageChanges[student.id] ?? initialHalaman;
                       const localHafalan = localHafalanChanges[student.id] ?? {
+                        juzId: null,
                         surahId: null,
                         ayat: null,
                       };
+                      const hafalanJuzId =
+                        localHafalan.juzId ??
+                        (progress as any)?.hafalan_juz_id ??
+                        null;
                       const hafalanSurahId =
                         localHafalan.surahId ?? progress?.hafalan_surah_id;
                       const hafalanAyat =
                         localHafalan.ayat ?? progress?.hafalan_ayat;
-                      const hasPageChange = localHalaman !== initialHalaman;
-                      const hasHafalanChange =
-                        hafalanSurahId !== progress?.hafalan_surah_id ||
-                        hafalanAyat !== progress?.hafalan_ayat;
-                      const hasChanges = hasPageChange || hasHafalanChange;
-                      const isSaving = savingState[student.id] || false;
-                      const isEligibleForPromotion =
-                        progress &&
-                        localHalaman >= maxHalaman &&
-                        progress.status_kenaikan === 'Proses';
+                      const isSaving = isBulkSaving;
 
                       return (
                         <tr
@@ -420,7 +561,7 @@ export default function MyGroup({
                             <button
                               type="button"
                               onClick={() => openHafalanModal(student)}
-                              className="font-medium text-indigo-600 hover:text-indigo-800 transition"
+                              className="font-medium text-[#005929] hover:text-[#826F4F] transition"
                             >
                               {hafalanSurahId && hafalanAyat
                                 ? `${
@@ -430,35 +571,14 @@ export default function MyGroup({
                                 : 'Tambah Hafalan'}
                             </button>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            {isEligibleForPromotion ? (
-                              <SecondaryButton
-                                onClick={() =>
-                                  handleProposePromotion(progress.id)
-                                }
-                                className="!py-1.5 !px-3 text-xs !bg-green-500 hover:!bg-green-600 !text-white"
-                              >
-                                Ajukan Kenaikan
-                              </SecondaryButton>
-                            ) : (
-                              <PrimaryButton
-                                onClick={() =>
-                                  handleSaveChangesForRow(student.id)
-                                }
-                                disabled={!hasChanges || isSaving}
-                                className="!py-1.5 !px-3 text-xs"
-                              >
-                                {isSaving ? 'Menyimpan...' : 'Simpan'}
-                              </PrimaryButton>
-                            )}
-                          </td>
+                          {/* Kolom Aksi dihapus */}
                         </tr>
                       );
                     })}
                     {btqGroup.students.length === 0 && (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={5}
                           className="text-center py-8 text-gray-400"
                         >
                           Belum ada siswa di kelompok ini.
@@ -497,9 +617,23 @@ export default function MyGroup({
                 </label>
                 <select
                   id="juz"
-                  value={selectedJuz}
-                  onChange={(e) => setSelectedJuz(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={hafalanJuzIds[editHafalanStudentId!] ?? selectedJuz}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSelectedJuz(val);
+                    if (editHafalanStudentId) {
+                      setHafalanJuzIds((prev) => ({
+                        ...prev,
+                        [editHafalanStudentId]: val,
+                      }));
+                      // Reset surah when juz changes
+                      setHafalanSurahIds((prev) => ({
+                        ...prev,
+                        [editHafalanStudentId]: '',
+                      }));
+                    }
+                  }}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#005929] focus:ring-[#005929] sm:text-sm"
                 >
                   <option value="">Semua Juz</option>
                   {juzs.map((j) => (
@@ -525,7 +659,7 @@ export default function MyGroup({
                       [editHafalanStudentId!]: e.target.value,
                     }))
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#005929] focus:ring-[#005929] sm:text-sm"
                 >
                   <option value="">Pilih Surah</option>
                   {surahs.map((s) => (
@@ -553,7 +687,7 @@ export default function MyGroup({
                     }))
                   }
                   placeholder="Contoh: 1-7"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#005929] focus:ring-[#005929] sm:text-sm"
                 />
               </div>
             </div>
@@ -561,7 +695,72 @@ export default function MyGroup({
               <SecondaryButton onClick={() => setEditHafalanStudentId(null)}>
                 Batal
               </SecondaryButton>
-              <PrimaryButton onClick={handleSetHafalan}>Atur</PrimaryButton>
+              <PrimaryButton
+                className="!bg-[#005929] hover:!bg-[#005929]/90 focus:!ring-[#005929]"
+                onClick={handleSetHafalan}
+              >
+                Atur
+              </PrimaryButton>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Modal konfirmasi meninggalkan halaman saat ada perubahan belum disimpan */}
+      <Dialog
+        open={showLeaveConfirm}
+        onClose={() => setShowLeaveConfirm(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="w-full max-w-lg rounded-xl bg-white p-6">
+            <div className="sm:flex sm:items-start">
+              <div className="mx-auto sm:mx-0 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-yellow-100">
+                <ExclamationTriangleIcon
+                  className="h-6 w-6 text-yellow-600"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                <Dialog.Title className="text-base font-semibold leading-6 text-gray-900">
+                  Konfirmasi Meninggalkan Halaman
+                </Dialog.Title>
+                <div className="mt-2 text-sm text-gray-600">
+                  Anda yakin ingin meninggalkan halaman ini? Perubahan yang
+                  belum disimpan akan hilang.
+                </div>
+                <div className="mt-4 rounded border border-yellow-200 bg-yellow-50 p-3 text-yellow-800 text-sm">
+                  <strong className="font-semibold">Peringatan:</strong>{' '}
+                  Perubahan belum disimpan tidak dapat dipulihkan setelah Anda
+                  keluar.
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 sm:mt-5 sm:flex sm:flex-row-reverse">
+              <DangerButton
+                onClick={() => {
+                  if (pendingUrl) {
+                    allowNavigateRef.current = true;
+                    setTimeout(() => (allowNavigateRef.current = false), 500);
+                    setShowLeaveConfirm(false);
+                    const url = pendingUrl;
+                    setPendingUrl(null);
+                    router.visit(url);
+                  } else {
+                    setShowLeaveConfirm(false);
+                  }
+                }}
+                className="w-full justify-center sm:ml-3 sm:w-auto"
+              >
+                Tinggalkan Halaman
+              </DangerButton>
+              <SecondaryButton
+                onClick={() => setShowLeaveConfirm(false)}
+                className="mt-3 w-full justify-center sm:mt-0 sm:w-auto"
+              >
+                Batal
+              </SecondaryButton>
             </div>
           </Dialog.Panel>
         </div>

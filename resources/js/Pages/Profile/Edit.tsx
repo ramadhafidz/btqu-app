@@ -9,7 +9,7 @@ export default function Edit({
   mustVerifyEmail,
   status,
 }: PageProps<{ mustVerifyEmail: boolean; status?: string }>) {
-  const { flash } = usePage().props;
+  const { flash } = usePage().props as any;
 
   return (
     <AuthenticatedLayout
@@ -42,10 +42,6 @@ export default function Edit({
 
           <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
             <UpdatePasswordForm className="max-w-xl" />
-          </div>
-
-          <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-            <DeleteUserForm className="max-w-xl" />
           </div>
         </div>
       </div>

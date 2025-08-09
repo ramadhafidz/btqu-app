@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Head, router, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Calendar, { CalendarProps } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -78,6 +78,7 @@ export default function Holidays({
     keterangan: '',
   });
   const [searchQuery, setSearchQuery] = useState(filters.search || '');
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const [selectedYear, setSelectedYear] = useState(filters.year || currentYear);
   const [statusFilter, setStatusFilter] = useState<'all' | 'past' | 'upcoming'>(
     (filters as any)?.status || 'all'
@@ -126,8 +127,8 @@ export default function Holidays({
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e && e.preventDefault) e.preventDefault();
     router.get(
       '/admin/holidays',
       { search: searchQuery, year: selectedYear, status: statusFilter },
@@ -137,6 +138,18 @@ export default function Holidays({
       }
     );
   };
+
+  // Debounce search
+  useEffect(() => {
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      handleSearch();
+    }, 400);
+    return () => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, selectedYear, statusFilter]);
 
   const handleYearChange = (year: number) => {
     setSelectedYear(year);
@@ -283,9 +296,25 @@ export default function Holidays({
       }
 
       if (holidaysOnDate.length > 0) {
+        const tooltipText = holidaysOnDate
+          .map((h) => `• ${h.keterangan}`)
+          .join('\n');
         return (
-          <div className="w-full h-full flex flex-col items-center justify-center p-1 text-white">
-            <div className="text-lg font-bold mb-1">{date.getDate()}</div>
+          <div
+            className="relative group w-full h-full flex flex-col items-center justify-center p-1 text-white"
+            aria-label={tooltipText}
+          >
+            {/* Fancy tooltip */}
+            <div className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+              <div className="px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg whitespace-pre-line max-w-[240px] text-left">
+                {tooltipText}
+              </div>
+              <div className="mx-auto w-0 h-0 border-l-6 border-r-6 border-t-6 border-transparent border-t-gray-900" />
+            </div>
+
+            <div className="text-lg font-bold mb-1" aria-hidden="true">
+              {date.getDate()}
+            </div>
             <div className="text-xs font-medium text-center leading-tight">
               {holidaysOnDate[0].keterangan.length > 12
                 ? holidaysOnDate[0].keterangan.substring(0, 12) + '...'
@@ -306,15 +335,12 @@ export default function Holidays({
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month') {
       const holidaysOnDate = getHolidaysForDate(date);
+      const today = new Date();
+      const isToday = date.toDateString() === today.toDateString();
 
-      // Debug log
-      if (holidaysOnDate.length > 0) {
-        console.log(
-          'Adding holiday-tile-red class for date:',
-          formatLocalYMD(date)
-        );
+      if (isToday) {
+        return 'calendar-tile-today-custom';
       }
-
       if (holidaysOnDate.length > 0) {
         return 'holiday-tile-red';
       }
@@ -350,28 +376,27 @@ export default function Holidays({
   return (
     <AuthenticatedLayout
       header={
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold leading-tight text-gray-800 flex items-center">
-              <CalendarIcon className="h-8 w-8 mr-3 text-blue-600" />
-              Kelola Hari Libur
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Mengelola jadwal hari libur untuk perhitungan hari aktif
-              pembelajaran
-            </p>
-          </div>
-          <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
-            <span className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full flex items-center">
-              <ChartBarIcon className="h-4 w-4 mr-1" />
+        <div className="flex items-center justify-between min-h-[64px] px-0 sm:px-6 lg:px-8 py-4">
+          <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+            Kelola Hari Libur
+          </h2>
+          <div className="flex items-center gap-3 text-sm ml-4">
+            <span className="px-4 py-1.5 bg-[#F4F1EC] text-[#826F4F] rounded-full flex items-center font-medium">
+              <ChartBarIcon
+                className="h-4 w-4 mr-1"
+                style={{ color: '#826F4F' }}
+              />
               {filteredHolidays.length} dari {statistics.total} Hari Libur
             </span>
-            <span className="px-3 py-1.5 bg-green-50 text-green-700 rounded-full flex items-center">
-              <CalendarSolidIcon className="h-4 w-4 mr-1" />
+            <span className="px-4 py-1.5 bg-[#E6F4EC] text-[#005929] rounded-full flex items-center font-medium">
+              <CalendarSolidIcon
+                className="h-4 w-4 mr-1"
+                style={{ color: '#005929' }}
+              />
               Tahun {selectedYear}
             </span>
             {statusFilter !== 'all' && (
-              <span className="px-3 py-1.5 bg-orange-50 text-orange-700 rounded-full flex items-center">
+              <span className="px-4 py-1.5 bg-orange-50 text-orange-700 rounded-full flex items-center">
                 <FunnelIcon className="h-4 w-4 mr-1" />
                 {statusFilter === 'past' ? 'Sudah Lewat' : 'Mendatang'}
               </span>
@@ -427,7 +452,7 @@ export default function Holidays({
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
             {/* Header Section */}
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -442,13 +467,13 @@ export default function Holidays({
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1 border border-gray-300 shadow-sm">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 ${
+                      className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 border ${
                         viewMode === 'grid'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'bg-[#826F4F] text-white border-[#826F4F] shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900 border-transparent'
                       }`}
                     >
                       <ViewColumnsIcon className="h-4 w-4 mr-1" />
@@ -456,10 +481,10 @@ export default function Holidays({
                     </button>
                     <button
                       onClick={() => setViewMode('calendar')}
-                      className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 ${
+                      className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 border ${
                         viewMode === 'calendar'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'bg-[#826F4F] text-white border-[#826F4F] shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900 border-transparent'
                       }`}
                     >
                       <CalendarDaysIcon className="h-4 w-4 mr-1" />
@@ -470,21 +495,21 @@ export default function Holidays({
                     <button
                       onClick={handleImportNationalHolidays}
                       disabled={isImporting}
-                      className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-colors duration-200 shadow-sm"
+                      className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#005929] focus:ring-offset-2 disabled:opacity-50 transition-colors duration-200 shadow-sm"
                     >
                       <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                      {isImporting ? 'Mengimpor...' : 'Impor Libur Nasional'}
+                      {isImporting ? 'Mengimpor...' : 'Impor Hari Libur'}
                     </button>
 
                     {/* Tooltip */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                       Data dari dayoffapi.vercel.app
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                     </div>
                   </div>
                   <button
                     onClick={openAddModal}
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 shadow-sm"
+                    className="inline-flex items-center px-4 py-2 bg-[#005929] text-white rounded-lg text-sm font-medium hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-[#005929] focus:ring-offset-2 transition-colors duration-200 shadow-sm"
                   >
                     <PlusIcon className="h-4 w-4 mr-2" />
                     Tambah Hari Libur
@@ -508,7 +533,7 @@ export default function Holidays({
                     placeholder="Cari berdasarkan keterangan atau tanggal..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-colors duration-200"
+                    className="block w-full pl-10 pr-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#005929] focus:border-[#005929] text-sm transition-colors duration-200"
                   />
                 </div>
                 <div className="flex gap-3">
@@ -517,7 +542,7 @@ export default function Holidays({
                     <button
                       type="button"
                       onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                      className={`inline-flex items-center px-3 py-2.5 border rounded-lg text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${currentStatusBadge.bgColor} ${currentStatusBadge.textColor} ${currentStatusBadge.borderColor} hover:opacity-80`}
+                      className={`inline-flex items-center px-3 py-2.5 border rounded-lg text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#005929] focus:ring-offset-2 ${currentStatusBadge.bgColor} ${currentStatusBadge.textColor} border-[#005929] hover:opacity-80 ${showStatusDropdown ? 'ring-2 ring-[#005929]' : ''}`}
                       aria-label="Filter berdasarkan status"
                     >
                       <currentStatusBadge.icon className="h-4 w-4 mr-2" />
@@ -547,14 +572,14 @@ export default function Holidays({
                                   }}
                                   className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors duration-150 flex items-center ${
                                     statusFilter === status
-                                      ? 'bg-blue-50 text-blue-700'
+                                      ? 'bg-[#005929] bg-opacity-10 text-[#005929] font-semibold'
                                       : 'text-gray-700 hover:bg-gray-50'
                                   }`}
                                 >
                                   <IconComponent className="h-4 w-4 mr-2" />
                                   {badge.text}
                                   {statusFilter === status && (
-                                    <CheckIcon className="h-4 w-4 ml-auto text-blue-600" />
+                                    <CheckIcon className="h-4 w-4 ml-auto text-[#005929]" />
                                   )}
                                 </button>
                               );
@@ -572,7 +597,7 @@ export default function Holidays({
                       id="year-filter"
                       value={selectedYear}
                       onChange={(e) => handleYearChange(Number(e.target.value))}
-                      className="min-w-[100px] pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white transition-colors duration-200 appearance-none cursor-pointer"
+                      className="min-w-[100px] pl-3 pr-10 py-2.5 border border-[#005929] rounded-lg focus:ring-2 focus:ring-[#005929] focus:border-[#005929] text-sm bg-white transition-colors duration-200 appearance-none cursor-pointer"
                       aria-label="Pilih tahun"
                     >
                       {years.map((year) => (
@@ -585,14 +610,6 @@ export default function Holidays({
                       <ChevronDownIcon className="h-4 w-4 text-gray-400" />
                     </div>
                   </div>
-                  <button
-                    type="submit"
-                    className="inline-flex items-center px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
-                    aria-label="Filter data"
-                  >
-                    <FunnelIcon className="h-4 w-4 mr-2" />
-                    Filter
-                  </button>
                 </div>
               </form>
             </div>
@@ -703,6 +720,15 @@ export default function Holidays({
                         border-2 rounded-xl p-4 transition-all duration-200 hover:shadow-md
                         ${getDateColor(holiday.tanggal)}
                       `}
+                        style={
+                          new Date(holiday.tanggal) > new Date()
+                            ? {
+                                backgroundColor: 'rgba(0, 89, 41, 0.08)',
+                                borderColor: '#005929',
+                                color: '#005929',
+                              }
+                            : undefined
+                        }
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
@@ -719,19 +745,25 @@ export default function Holidays({
                           <div className="flex gap-1 ml-2">
                             <button
                               onClick={() => handleEdit(holiday)}
-                              className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
+                              className="p-1.5 bg-white border border-gray-300 shadow-sm text-[#005929] hover:bg-[#e6f4ec] hover:border-[#005929] rounded-lg transition-colors duration-200"
                               aria-label="Edit hari libur"
                               title="Edit hari libur"
                             >
-                              <PencilIcon className="h-4 w-4" />
+                              <PencilIcon
+                                className="h-4 w-4"
+                                style={{ color: '#005929' }}
+                              />
                             </button>
                             <button
                               onClick={() => handleDelete(holiday)}
-                              className="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200"
+                              className="p-1.5 bg-white border border-gray-300 shadow-sm text-red-600 hover:bg-red-50 hover:border-red-600 rounded-lg transition-colors duration-200"
                               aria-label="Hapus hari libur"
                               title="Hapus hari libur"
                             >
-                              <TrashIcon className="h-4 w-4" />
+                              <TrashIcon
+                                className="h-4 w-4"
+                                style={{ color: '#d32f2f' }}
+                              />
                             </button>
                           </div>
                         </div>
@@ -750,8 +782,17 @@ export default function Holidays({
                               Hari ini
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-200 text-blue-800">
-                              <CalendarSolidIcon className="h-3 w-3 mr-1" />
+                            <span
+                              className="inline-flex items-center px-2 py-1 rounded-full"
+                              style={{
+                                backgroundColor: 'rgba(0, 89, 41, 0.15)',
+                                color: '#005929',
+                              }}
+                            >
+                              <CalendarSolidIcon
+                                className="h-3 w-3 mr-1"
+                                style={{ color: '#005929' }}
+                              />
                               Mendatang
                             </span>
                           )}
@@ -763,53 +804,79 @@ export default function Holidays({
               )}
             </div>
 
-            {/* Pagination */}
-            {holidays.links && holidays.links.length > 3 && (
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 flex justify-between sm:hidden">
-                    {holidays.prev_page_url && (
-                      <a
-                        href={holidays.prev_page_url}
-                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                      >
-                        ← Sebelumnya
-                      </a>
-                    )}
-                    {holidays.next_page_url && (
-                      <a
-                        href={holidays.next_page_url}
-                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                      >
-                        Selanjutnya →
-                      </a>
-                    )}
-                  </div>
-                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-center">
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                      {holidays.links.map((link, index) => (
-                        <a
-                          key={index}
-                          href={link.url || '#'}
-                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200 ${
-                            link.active
-                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                          } ${index === 0 ? 'rounded-l-md' : ''} ${
-                            index === holidays.links.length - 1
-                              ? 'rounded-r-md'
-                              : ''
-                          }`}
-                          dangerouslySetInnerHTML={{ __html: link.label }}
-                          aria-label={`Halaman ${link.label}`}
-                          title={`Halaman ${link.label}`}
-                        />
-                      ))}
-                    </nav>
+            {/* Pagination (only show in grid view) */}
+            {viewMode === 'grid' &&
+              holidays.links &&
+              holidays.links.length > 3 && (
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 flex justify-between sm:hidden">
+                      {holidays.prev_page_url && (
+                        <Link
+                          href={holidays.prev_page_url}
+                          preserveState
+                          preserveScroll
+                          className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          ← Sebelumnya
+                        </Link>
+                      )}
+                      {holidays.next_page_url && (
+                        <Link
+                          href={holidays.next_page_url}
+                          preserveState
+                          preserveScroll
+                          className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          Selanjutnya →
+                        </Link>
+                      )}
+                    </div>
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-center">
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                        {holidays.links.map((link, index) =>
+                          link.url ? (
+                            <Link
+                              key={index}
+                              href={link.url}
+                              preserveState
+                              preserveScroll
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200 ${
+                                link.active
+                                  ? 'z-10 bg-[#005929] border-[#005929] text-white'
+                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              } ${index === 0 ? 'rounded-l-md' : ''} ${
+                                index === holidays.links.length - 1
+                                  ? 'rounded-r-md'
+                                  : ''
+                              }`}
+                              aria-label={`Halaman ${link.label}`}
+                              title={`Halaman ${link.label}`}
+                            >
+                              <span
+                                dangerouslySetInnerHTML={{ __html: link.label }}
+                              />
+                            </Link>
+                          ) : (
+                            <span
+                              key={index}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200 bg-white border-gray-200 text-gray-300 cursor-not-allowed ${
+                                index === 0 ? 'rounded-l-md' : ''
+                              } ${
+                                index === holidays.links.length - 1
+                                  ? 'rounded-r-md'
+                                  : ''
+                              }`}
+                              aria-disabled="true"
+                              dangerouslySetInnerHTML={{ __html: link.label }}
+                            />
+                          )
+                        )}
+                      </nav>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
       </div>

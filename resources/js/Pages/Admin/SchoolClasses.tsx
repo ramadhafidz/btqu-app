@@ -168,9 +168,11 @@ export default function Index({ auth }: PageProps) {
   return (
     <AuthenticatedLayout
       header={
-        <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-          Manajemen Kelas
-        </h2>
+        <div className="flex items-center justify-between min-h-[64px] px-0 sm:px-6 lg:px-8 py-4">
+          <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+            Manajemen Kelas
+          </h2>
+        </div>
       }
     >
       <Head title="Manajemen Kelas" />
@@ -185,7 +187,7 @@ export default function Index({ auth }: PageProps) {
             </div>
             <PrimaryButton
               onClick={openAddModal}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 !bg-[#005929] hover:!bg-[#005929]/90 focus:!bg-[#005929] active:!bg-[#005929] focus:!ring-[#005929]"
             >
               <PlusCircleIcon className="w-5 h-5" />
               <span>Tambah Kelas</span>
@@ -232,7 +234,7 @@ export default function Index({ auth }: PageProps) {
                             className="px-6 py-3 font-bold text-gray-700 flex items-center"
                           >
                             <ChevronDownIcon
-                              className={`w-5 h-5 mr-2 transition-transform ${
+                              className={`w-5 h-5 mr-2 text-[#826F4F] transition-transform ${
                                 isOpen ? 'rotate-0' : '-rotate-90'
                               }`}
                             />
@@ -251,7 +253,7 @@ export default function Index({ auth }: PageProps) {
                                 scope="row"
                                 className="px-6 py-4 font-medium text-gray-900 bg-gray-50"
                               >
-                                <span className="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">
+                                <span className="bg-[#005929]/10 text-[#005929] text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">
                                   Kelas {schoolClass.level}
                                 </span>
                               </th>
@@ -264,7 +266,7 @@ export default function Index({ auth }: PageProps) {
                               <td className="px-6 py-4 text-right border-l">
                                 <button
                                   onClick={() => openEditModal(schoolClass)}
-                                  className="font-medium text-indigo-600 hover:text-indigo-800 p-2"
+                                  className="font-medium text-[#005929] hover:text-[#826F4F] p-2"
                                   title="Edit kelas"
                                 >
                                   <PencilSquareIcon className="w-5 h-5" />

@@ -13,6 +13,7 @@ class StudentProgress extends Model
     'student_id',
     'jilid',
     'halaman',
+  'hafalan_juz_id',
     'status_kenaikan',
     'hafalan_surah_id',
     'hafalan_ayat',
@@ -28,5 +29,10 @@ class StudentProgress extends Model
   public function reviewLogs()
   {
     return $this->hasMany(StudentPromotionReviewLog::class, 'student_progress_id');
+  }
+
+  public function hafalanJuz()
+  {
+    return $this->belongsTo(Juz::class, 'hafalan_juz_id');
   }
 }

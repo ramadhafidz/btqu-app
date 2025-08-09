@@ -36,8 +36,8 @@ export default function GroupDetailDashboard({
       {
         label: 'Halaman Selesai',
         data: chartsData.dailyProgress.map((d: any) => d.pages),
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: '#005929',
+        backgroundColor: '#00592955',
       },
       // Comment dulu hafalan
       // {
@@ -57,8 +57,8 @@ export default function GroupDetailDashboard({
         data: chartsData.progressPerStudent.map(
           (s: any) => s.avg_pages_per_day
         ),
-        backgroundColor: 'rgba(59, 130, 246, 0.6)',
-        borderColor: 'rgba(59, 130, 246, 1)',
+        backgroundColor: '#826F4F99',
+        borderColor: '#826F4F',
         borderWidth: 1,
       },
       // Future dataset for hafalan (commented)
@@ -80,7 +80,7 @@ export default function GroupDetailDashboard({
         <div className="flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-between">
           <Link
             href={route('dashboard')}
-            className="group inline-flex w-fit items-center gap-2 text-sm font-medium text-indigo-600 rounded-md px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition"
+            className="group inline-flex w-fit items-center gap-2 text-sm font-medium text-[#005929] rounded-md px-3 py-1.5 bg-[#005929]/10 hover:bg-[#005929]/15 focus:outline-none focus:ring-2 focus:ring-[#005929] focus:ring-offset-1 transition"
           >
             <ArrowLeftIcon className="h-4 w-4 transition group-hover:-translate-x-0.5" />
             <span>Kembali ke Dasbor Koordinator</span>
@@ -113,12 +113,12 @@ export default function GroupDetailDashboard({
                 <KpiCard
                   title="Rata-rata Halaman/Hari"
                   value={chartsData.avgPagesPerDay}
-                  icon={<BookOpenIcon className="w-8 h-8 text-blue-500" />}
+                  icon={<BookOpenIcon className="w-8 h-8 text-[#005929]" />}
                 />
                 <KpiCard
                   title="Total Halaman Selesai"
                   value={chartsData.activeDaysInfo?.totalPages || 0}
-                  icon={<BookOpenIcon className="w-8 h-8 text-green-500" />}
+                  icon={<BookOpenIcon className="w-8 h-8 text-[#826F4F]" />}
                 />
               </div>
 
@@ -161,7 +161,7 @@ export default function GroupDetailDashboard({
                       <div className="font-medium text-gray-600">
                         Total Hari
                       </div>
-                      <div className="text-xl font-bold text-blue-600">
+                      <div className="text-xl font-bold text-[#826F4F]">
                         {Math.round(chartsData.activeDaysInfo.period)}
                       </div>
                     </div>
@@ -183,38 +183,38 @@ export default function GroupDetailDashboard({
                       <div className="font-medium text-gray-600">
                         Hari Aktif
                       </div>
-                      <div className="text-xl font-bold text-green-600">
+                      <div className="text-xl font-bold text-[#005929]">
                         {chartsData.activeDaysInfo.activeDays}
                       </div>
                     </div>
                   </div>
-                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                  <div className="mt-6 p-4 bg-gradient-to-r from-[#005929]/5 to-[#826F4F]/5 rounded-lg border border-[#005929]/30">
+                    <h4 className="font-semibold text-[#005929] mb-3 flex items-center">
                       <span className="mr-2">📊</span>
                       Rumus Perhitungan
                     </h4>
-                    <div className="mb-3 p-3 bg-white rounded border-l-4 border-blue-400">
+                    <div className="mb-3 p-3 bg-white rounded border-l-4 border-[#826F4F]">
                       <div className="text-sm font-medium text-gray-700 mb-1">
                         Hari Aktif:
                       </div>
-                      <div className="font-mono text-lg text-blue-800 bg-blue-50 px-3 py-2 rounded inline-block">
+                      <div className="font-mono text-lg text-[#826F4F] bg-[#826F4F]/10 px-3 py-2 rounded inline-block">
                         {Math.round(chartsData.activeDaysInfo.period)} -{' '}
                         {chartsData.activeDaysInfo.weekends} -{' '}
                         {chartsData.activeDaysInfo.holidays} ={' '}
-                        <span className="font-bold text-blue-900">
+                        <span className="font-bold text-[#826F4F]">
                           {chartsData.activeDaysInfo.activeDays}
                         </span>{' '}
                         hari
                       </div>
                     </div>
-                    <div className="mb-3 p-3 bg-white rounded border-l-4 border-green-400">
+                    <div className="mb-3 p-3 bg-white rounded border-l-4 border-[#005929]">
                       <div className="text-sm font-medium text-gray-700 mb-1">
                         Rata-rata Halaman per Hari:
                       </div>
-                      <div className="font-mono text-lg text-green-800 bg-green-50 px-3 py-2 rounded inline-block">
+                      <div className="font-mono text-lg text-[#005929] bg-[#005929]/10 px-3 py-2 rounded inline-block">
                         {chartsData.activeDaysInfo.totalPages} ÷{' '}
                         {chartsData.activeDaysInfo.activeDays} ={' '}
-                        <span className="font-bold text-green-900">
+                        <span className="font-bold text-[#005929]">
                           {chartsData.avgPagesPerDay}
                         </span>{' '}
                         hlm/hari

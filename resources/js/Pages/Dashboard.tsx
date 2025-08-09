@@ -82,8 +82,8 @@ export default function Dashboard({ auth }: PageProps) {
           data: chartsData.progressPerGroup.map(
             (d: any) => d.avg_pages_per_day
           ),
-          backgroundColor: 'rgba(54, 162, 235, 0.7)',
-          borderColor: 'rgba(54, 162, 235, 1)',
+          backgroundColor: '#005929AA',
+          borderColor: '#005929',
           borderWidth: 1,
         },
         // Comment dulu hafalan
@@ -124,8 +124,8 @@ export default function Dashboard({ auth }: PageProps) {
         {
           label: 'Jumlah Siswa',
           data: jilidDistribution.map((d: any) => d.student_count),
-          backgroundColor: 'rgba(153, 102, 255, 0.7)',
-          borderColor: 'rgba(153, 102, 255, 1)',
+          backgroundColor: '#826F4FB3',
+          borderColor: '#826F4F',
           borderWidth: 1,
         },
       ],
@@ -135,14 +135,14 @@ export default function Dashboard({ auth }: PageProps) {
   const jilidDistributionPieData = useMemo(() => {
     if (!jilidDistributionChartData) return null;
     const baseColors = [
-      '#6366F1', // indigo-500
-      '#10B981', // emerald-500
-      '#F59E0B', // amber-500
-      '#EF4444', // red-500
-      '#3B82F6', // blue-500
-      '#8B5CF6', // violet-500
-      '#EC4899', // pink-500
-      '#14B8A6', // teal-500
+      '#005929', // brand green (deep)
+      '#0A6F3A', // green shade
+      '#198754', // green shade
+      '#2E8B57', // green shade
+      '#826F4F', // brand brown (deep)
+      '#9A8464', // brown shade
+      '#B59A79', // brown shade
+      '#CBB096', // brown shade
     ];
     const labels = jilidDistributionChartData.labels;
     const data = jilidDistributionChartData.datasets[0].data;
@@ -193,9 +193,11 @@ export default function Dashboard({ auth }: PageProps) {
   return (
     <AuthenticatedLayout
       header={
-        <h2 className="text-xl font-semibold leading-tight text-gray-800">
-          Dashboard Koordinator
-        </h2>
+        <div className="flex items-center justify-between min-h-[64px] px-0 sm:px-6 lg:px-8 py-4">
+          <h2 className="text-xl font-semibold leading-tight text-gray-800">
+            Dashboard Koordinator
+          </h2>
+        </div>
       }
     >
       <Head title="Dashboard Koordinator" />
@@ -237,7 +239,7 @@ export default function Dashboard({ auth }: PageProps) {
                       id="rangeSelect"
                       value={range}
                       onChange={(e) => setRange(e.target.value as any)}
-                      className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="border-gray-300 rounded-md shadow-sm focus:border-[#005929] focus:ring-[#005929]"
                       title="Pilih rentang waktu"
                     >
                       <option value="last7">7 Hari Terakhir</option>
@@ -259,7 +261,7 @@ export default function Dashboard({ auth }: PageProps) {
                           id="monthSelect"
                           value={month}
                           onChange={(e) => setMonth(Number(e.target.value))}
-                          className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          className="border-gray-300 rounded-md shadow-sm focus:border-[#005929] focus:ring-[#005929]"
                           title="Pilih bulan"
                         >
                           {Array.from({ length: 12 }, (_, i) => i + 1).map(
@@ -283,7 +285,7 @@ export default function Dashboard({ auth }: PageProps) {
                           type="number"
                           value={year}
                           onChange={(e) => setYear(Number(e.target.value))}
-                          className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 w-24"
+                          className="border-gray-300 rounded-md shadow-sm focus:border-[#005929] focus:ring-[#005929] w-24"
                           title="Masukkan tahun"
                         />
                       </div>
@@ -302,7 +304,7 @@ export default function Dashboard({ auth }: PageProps) {
                         type="number"
                         value={year}
                         onChange={(e) => setYear(Number(e.target.value))}
-                        className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 w-24"
+                        className="border-gray-300 rounded-md shadow-sm focus:border-[#005929] focus:ring-[#005929] w-24"
                         title="Masukkan tahun"
                       />
                     </div>
@@ -315,17 +317,17 @@ export default function Dashboard({ auth }: PageProps) {
                 <KpiCard
                   title="Total Kelompok Aktif"
                   value={chartsData.statistics.total_groups}
-                  icon={<UserGroupIcon className="w-8 h-8 text-blue-500" />}
+                  icon={<UserGroupIcon className="w-8 h-8 text-[#005929]" />}
                 />
                 <KpiCard
                   title="Total Siswa Terdaftar"
                   value={chartsData.statistics.total_students}
-                  icon={<AcademicCapIcon className="w-8 h-8 text-green-500" />}
+                  icon={<AcademicCapIcon className="w-8 h-8 text-[#826F4F]" />}
                 />
                 <KpiCard
                   title="Total Guru Mengajar"
                   value={chartsData.statistics.active_teachers}
-                  icon={<BriefcaseIcon className="w-8 h-8 text-indigo-500" />}
+                  icon={<BriefcaseIcon className="w-8 h-8 text-[#005929]" />}
                 />
               </div>
 
@@ -406,7 +408,7 @@ export default function Dashboard({ auth }: PageProps) {
                     <select
                       value={selectedLevel}
                       onChange={(e) => setSelectedLevel(e.target.value)}
-                      className="h-9 pl-3 pr-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm leading-tight bg-white"
+                      className="h-9 pl-3 pr-8 border-gray-300 focus:border-[#005929] focus:ring-[#005929] rounded-md shadow-sm text-sm leading-tight bg-white"
                       title="Filter berdasarkan level kelas"
                     >
                       <option value="">Semua</option>
@@ -420,13 +422,13 @@ export default function Dashboard({ auth }: PageProps) {
                     >
                       <button
                         onClick={() => setJilidChartType('bar')}
-                        className={`px-4 inline-flex items-center justify-center rounded-sm h-full transition ${jilidChartType === 'bar' ? 'bg-indigo-600 text-white shadow' : 'text-gray-600 hover:bg-white'}`}
+                        className={`px-4 inline-flex items-center justify-center rounded-sm h-full transition ${jilidChartType === 'bar' ? 'bg-[#005929] text-white shadow' : 'text-gray-600 hover:bg-white'}`}
                       >
                         Bar
                       </button>
                       <button
                         onClick={() => setJilidChartType('pie')}
-                        className={`px-4 inline-flex items-center justify-center rounded-sm h-full transition ${jilidChartType === 'pie' ? 'bg-indigo-600 text-white shadow' : 'text-gray-600 hover:bg-white'}`}
+                        className={`px-4 inline-flex items-center justify-center rounded-sm h-full transition ${jilidChartType === 'pie' ? 'bg-[#005929] text-white shadow' : 'text-gray-600 hover:bg-white'}`}
                       >
                         Pie
                       </button>
@@ -459,7 +461,7 @@ export default function Dashboard({ auth }: PageProps) {
                       )}
                     </div>
                     <div className="lg:w-64 space-y-3">
-                      <div className="text-sm font-semibold text-gray-700">
+                      <div className="text-sm font-semibold text-[#005929]">
                         Ringkasan
                       </div>
                       <ul className="space-y-1 text-xs">
@@ -480,7 +482,7 @@ export default function Dashboard({ auth }: PageProps) {
                           </li>
                         ))}
                       </ul>
-                      <div className="pt-2 text-[11px] text-gray-400">
+                      <div className="pt-2 text-[11px] text-[#826F4F]">
                         Total siswa:{' '}
                         {jilidDistributionSummary.reduce(
                           (a, b) => a + b.count,
@@ -517,7 +519,7 @@ export default function Dashboard({ auth }: PageProps) {
                       <div className="font-medium text-gray-600">
                         Total Hari
                       </div>
-                      <div className="text-xl font-bold text-blue-600">
+                      <div className="text-xl font-bold text-[#005929]">
                         {Math.round(chartsData.activeDaysInfo.period)}
                       </div>
                     </div>
@@ -531,7 +533,7 @@ export default function Dashboard({ auth }: PageProps) {
                       <div className="font-medium text-gray-600">
                         Hari Libur
                       </div>
-                      <div className="text-xl font-bold text-orange-600">
+                      <div className="text-xl font-bold text-[#826F4F]">
                         -{chartsData.activeDaysInfo.holidays}
                       </div>
                     </div>
@@ -539,7 +541,7 @@ export default function Dashboard({ auth }: PageProps) {
                       <div className="font-medium text-gray-600">
                         Hari Aktif
                       </div>
-                      <div className="text-xl font-bold text-green-600">
+                      <div className="text-xl font-bold text-[#005929]">
                         {chartsData.activeDaysInfo.activeDays}
                       </div>
                     </div>

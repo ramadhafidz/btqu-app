@@ -43,17 +43,17 @@ export default function Dashboard({
             <KpiCard
               title="Total Pengguna (Guru & Koor)"
               value={stats.total_users}
-              icon={<UsersIcon className="w-8 h-8 text-blue-500" />}
+              icon={<UsersIcon className="w-8 h-8 text-[#005929]" />}
             />
             <KpiCard
               title="Total Guru"
               value={stats.total_teachers}
-              icon={<BriefcaseIcon className="w-8 h-8 text-green-500" />}
+              icon={<BriefcaseIcon className="w-8 h-8 text-[#826F4F]" />}
             />
             <KpiCard
               title="Total Koordinator"
               value={stats.total_coordinators}
-              icon={<UserPlusIcon className="w-8 h-8 text-indigo-500" />}
+              icon={<UserPlusIcon className="w-8 h-8 text-[#005929]" />}
             />
           </div>
         </div>

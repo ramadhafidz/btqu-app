@@ -10,6 +10,7 @@ class StudentProgressLog extends Model
     'student_progress_id',
     'jilid',
     'halaman',
+  'hafalan_juz_id',
     'hafalan_surah_id',
     'hafalan_ayat',
     'type', // 'halaman' atau 'hafalan'
@@ -18,5 +19,10 @@ class StudentProgressLog extends Model
   public function studentProgress()
   {
     return $this->belongsTo(StudentProgress::class);
+  }
+
+  public function hafalanJuz()
+  {
+    return $this->belongsTo(Juz::class, 'hafalan_juz_id');
   }
 }

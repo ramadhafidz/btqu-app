@@ -23,6 +23,7 @@ export interface StudentProgress {
   jilid: number;
   halaman: number;
   status_kenaikan: string;
+  hafalan_juz_id: number | null;
   hafalan_surah_id: number | null;
   hafalan_ayat: string | null;
 }

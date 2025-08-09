@@ -46,8 +46,8 @@ export default function Dashboard({ auth }: PageProps) {
       {
         label: 'Halaman Selesai',
         data: chartsData.dailyProgress.map((d: any) => d.pages),
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: '#005929',
+        backgroundColor: '#00592955',
       },
       // Comment dulu hafalan
       // {
@@ -68,8 +68,8 @@ export default function Dashboard({ auth }: PageProps) {
         data: chartsData.progressPerStudent.map(
           (s: any) => s.avg_pages_per_day
         ),
-        backgroundColor: 'rgba(59, 130, 246, 0.6)', // blue-500
-        borderColor: 'rgba(59, 130, 246, 1)',
+        backgroundColor: '#826F4F99', // brand brown 60%
+        borderColor: '#826F4F',
         borderWidth: 1,
       },
       // Future dataset for hafalan (currently zero / commented)
@@ -113,7 +113,7 @@ export default function Dashboard({ auth }: PageProps) {
                   id="rangeSelect"
                   value={range}
                   onChange={(e) => setRange(e.target.value as any)}
-                  className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="border-gray-300 rounded-md shadow-sm focus:border-[#005929] focus:ring-[#005929]"
                   title="Pilih rentang waktu"
                 >
                   <option value="last7">7 Hari Terakhir</option>
@@ -135,7 +135,7 @@ export default function Dashboard({ auth }: PageProps) {
                       id="monthSelect"
                       value={month}
                       onChange={(e) => setMonth(Number(e.target.value))}
-                      className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      className="border-gray-300 rounded-md shadow-sm focus:border-[#005929] focus:ring-[#005929]"
                       title="Pilih bulan"
                     >
                       {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -157,7 +157,7 @@ export default function Dashboard({ auth }: PageProps) {
                       type="number"
                       value={year}
                       onChange={(e) => setYear(Number(e.target.value))}
-                      className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 w-24"
+                      className="border-gray-300 rounded-md shadow-sm focus:border-[#005929] focus:ring-[#005929] w-24"
                       title="Masukkan tahun"
                     />
                   </div>
@@ -176,7 +176,7 @@ export default function Dashboard({ auth }: PageProps) {
                     type="number"
                     value={year}
                     onChange={(e) => setYear(Number(e.target.value))}
-                    className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 w-24"
+                    className="border-gray-300 rounded-md shadow-sm focus:border-[#005929] focus:ring-[#005929] w-24"
                     title="Masukkan tahun"
                   />
                 </div>
@@ -204,12 +204,12 @@ export default function Dashboard({ auth }: PageProps) {
                 <KpiCard
                   title="Rata-rata Halaman/Hari"
                   value={chartsData.avgPagesPerDay}
-                  icon={<BookOpenIcon className="w-8 h-8 text-blue-500" />}
+                  icon={<BookOpenIcon className="w-8 h-8 text-[#005929]" />}
                 />
                 <KpiCard
                   title="Total Halaman Selesai"
                   value={chartsData.activeDaysInfo?.totalPages || 0}
-                  icon={<BookOpenIcon className="w-8 h-8 text-green-500" />}
+                  icon={<BookOpenIcon className="w-8 h-8 text-[#826F4F]" />}
                 />
               </div>
 
@@ -260,7 +260,7 @@ export default function Dashboard({ auth }: PageProps) {
                       <div className="font-medium text-gray-600">
                         Total Hari
                       </div>
-                      <div className="text-xl font-bold text-blue-600">
+                      <div className="text-xl font-bold text-[#005929]">
                         {Math.round(chartsData.activeDaysInfo.period)}
                       </div>
                     </div>
@@ -274,7 +274,7 @@ export default function Dashboard({ auth }: PageProps) {
                       <div className="font-medium text-gray-600">
                         Hari Libur
                       </div>
-                      <div className="text-xl font-bold text-orange-600">
+                      <div className="text-xl font-bold text-[#826F4F]">
                         -{chartsData.activeDaysInfo.holidays}
                       </div>
                     </div>
@@ -282,7 +282,7 @@ export default function Dashboard({ auth }: PageProps) {
                       <div className="font-medium text-gray-600">
                         Hari Aktif
                       </div>
-                      <div className="text-xl font-bold text-green-600">
+                      <div className="text-xl font-bold text-[#005929]">
                         {chartsData.activeDaysInfo.activeDays}
                       </div>
                     </div>
@@ -290,16 +290,16 @@ export default function Dashboard({ auth }: PageProps) {
                       <div className="font-medium text-gray-600">
                         Total Aktivitas
                       </div>
-                      <div className="text-xl font-bold text-indigo-600">
+                      <div className="text-xl font-bold text-[#826F4F]">
                         {chartsData.activeDaysInfo.totalPages} hlm
                       </div>
                     </div>
                   </div>
-                  <div className="mt-4 p-3 bg-blue-50 rounded">
-                    <h4 className="font-medium text-blue-800 mb-2">
+                  <div className="mt-4 p-3 bg-[#0059290D] rounded">
+                    <h4 className="font-medium text-[#005929] mb-2">
                       📊 Rumus Perhitungan:
                     </h4>
-                    <div className="text-sm text-blue-700 space-y-1">
+                    <div className="text-sm text-[#005929] space-y-1">
                       <div>
                         <strong>Hari Aktif</strong> = Total Hari - Weekend -
                         Hari Libur

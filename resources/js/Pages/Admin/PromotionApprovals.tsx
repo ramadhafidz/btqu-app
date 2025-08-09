@@ -130,9 +130,11 @@ export default function Index({
   return (
     <AuthenticatedLayout
       header={
-        <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-          Persetujuan Kenaikan Jilid
-        </h2>
+        <div className="flex items-center justify-between min-h-[64px] px-0 sm:px-6 lg:px-8 py-4">
+          <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+            Persetujuan Kenaikan Jilid
+          </h2>
+        </div>
       }
     >
       <Head title="Persetujuan Kenaikan" />
@@ -197,7 +199,7 @@ export default function Index({
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => handleApprove(proposal)}
-                        className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-xs transition"
+                        className="inline-flex items-center gap-2 bg-[#005929] hover:bg-[#005929]/90 text-white font-bold py-2 px-4 rounded-md text-xs transition focus:outline-none focus:ring-2 focus:ring-[#005929]"
                       >
                         <CheckCircleIcon className="w-4 h-4" />
                         <span>Setujui</span>
@@ -298,7 +300,7 @@ export default function Index({
                 <PrimaryButton
                   onClick={onConfirm}
                   disabled={isSubmitting}
-                  className="w-full justify-center sm:w-auto"
+                  className="w-full justify-center sm:w-auto !bg-[#005929] hover:!bg-[#005929]/90 focus:!bg-[#005929] active:!bg-[#005929] focus:!ring-[#005929]"
                 >
                   {isSubmitting ? 'Memproses...' : 'Ya, Setujui'}
                 </PrimaryButton>
